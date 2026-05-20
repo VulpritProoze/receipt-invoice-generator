@@ -11,6 +11,7 @@ Use this skill when lint, formatting, and tests may all need repair and you want
 ## When to Use
 
 Use this skill when:
+
 - A change affects both lint and test state.
 - The suite is not green and you want one workflow to iterate safely.
 - You need a bounded repair loop instead of ad hoc back-and-forth.
@@ -69,6 +70,7 @@ Use this skill when:
 ## Completion Criteria
 
 This skill is complete only when:
+
 - The selected lint and test scope are both green, or a concrete blocker is surfaced.
 - The loop stayed within the cycle cap.
 - The report reflects the final state of the run.

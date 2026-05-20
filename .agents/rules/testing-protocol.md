@@ -1,4 +1,5 @@
 # Agent Rule Prompt: Testing Protocol
+
 **File**: `.agents/rules/testing-protocol.md`
 **Scope**: All agents. Applies whenever code is written, modified, or a phase is marked complete.
 **Priority**: High. Tests are written alongside the code. There is no "testing phase." A phase without tests is a phase that is not complete.
@@ -18,6 +19,7 @@ This rule defines what tests exist, how they are named, in what order they run, 
 Every piece of logic written in this project gets a test in the same session it is written.
 
 **Minimum test coverage per code unit:**
+
 - Every pure utility function in `src/lib/`: at least one unit test for the happy path and one for an edge case or invalid input.
 - Every Zod schema in `src/models/`: a schema test covering at least one fully valid object and one invalid permutation per required/constrained field.
 - Every Next.js API route handler in `src/app/api/`: at least one contract test for the happy path and one for the primary error path.
@@ -64,15 +66,15 @@ Test files live next to the source file they test. The naming pattern is:
 [source-filename].[test-type].test.ts(x)
 ```
 
-| Test type | Suffix | Example |
-|-----------|--------|---------|
-| Unit | `.unit.test.ts` | `maskCreditCard.unit.test.ts` |
-| Snapshot | `.snap.test.tsx` | `InvoiceForm.snap.test.tsx` |
-| Schema | `.schema.test.ts` | `invoice.schema.test.ts` |
-| Contract | `.contract.test.ts` | `invoicesRoute.contract.test.ts` |
-| Fixture | `.fixture.test.ts` | `csvParser.fixture.test.ts` |
+| Test type   | Suffix                 | Example                               |
+| ----------- | ---------------------- | ------------------------------------- |
+| Unit        | `.unit.test.ts`        | `maskCreditCard.unit.test.ts`         |
+| Snapshot    | `.snap.test.tsx`       | `InvoiceForm.snap.test.tsx`           |
+| Schema      | `.schema.test.ts`      | `invoice.schema.test.ts`              |
+| Contract    | `.contract.test.ts`    | `invoicesRoute.contract.test.ts`      |
+| Fixture     | `.fixture.test.ts`     | `csvParser.fixture.test.ts`           |
 | Integration | `.integration.test.ts` | `invoiceCreation.integration.test.ts` |
-| Security | `.security.test.ts` | `creditCardStorage.security.test.ts` |
+| Security    | `.security.test.ts`    | `creditCardStorage.security.test.ts`  |
 
 **Why the convention is strict:** `/run-tests` uses `--testPathPattern` to run each type in isolation and in the correct order. A test file named outside this convention will not be picked up by the ordered run — it either runs at the wrong time or not at all.
 
@@ -83,6 +85,7 @@ Test files live next to the source file they test. The naming pattern is:
 Every TypeScript interface in `src/models/` is derived from a Zod schema — not defined separately.
 
 **The required pattern:**
+
 ```typescript
 // src/models/invoice.ts
 import { z } from 'zod';
@@ -94,7 +97,7 @@ export const invoiceSchema = z.object({
   dueDate: z.string().datetime(),
   currency: z.enum(['PHP', 'USD']),
   billTo: z.string().min(1),
-  taxRate: z.number().min(0).max(1),
+  taxRate: z.number().min(0).max(1)
   // ... all fields
 });
 
@@ -104,6 +107,7 @@ export type Invoice = z.infer<typeof invoiceSchema>;
 The TypeScript type is always `z.infer<typeof schema>`. It is never defined separately from the schema — if they diverge, the schema wins, and the type is regenerated from it.
 
 **Schema test requirements:**
+
 - One test passing a fully valid object through `safeParse` → expect `success: true`.
 - At least one test per required or constrained field passing an invalid value → expect `success: false` with an error message that matches the constraint.
 - Tests live in `[model-name].schema.test.ts` co-located with the model file.
@@ -124,13 +128,13 @@ The TypeScript type is always `z.infer<typeof schema>`. It is never defined sepa
 
 ## Rule 6: Coverage Targets
 
-| Area | Line coverage target | Branch coverage target |
-|------|---------------------|------------------------|
-| `src/lib/` | ≥ 90% | ≥ 80% |
-| `src/modules/` | ≥ 80% | ≥ 70% |
-| `src/models/` (Zod schemas) | 100% | 100% |
-| `src/app/api/` (route handlers) | ≥ 80% | ≥ 70% |
-| `src/components/` | Snapshot for every exported component | N/A |
+| Area                            | Line coverage target                  | Branch coverage target |
+| ------------------------------- | ------------------------------------- | ---------------------- |
+| `src/lib/`                      | ≥ 90%                                 | ≥ 80%                  |
+| `src/modules/`                  | ≥ 80%                                 | ≥ 70%                  |
+| `src/models/` (Zod schemas)     | 100%                                  | 100%                   |
+| `src/app/api/` (route handlers) | ≥ 80%                                 | ≥ 70%                  |
+| `src/components/`               | Snapshot for every exported component | N/A                    |
 
 Coverage is reported per test type in each test report. A phase is not complete if coverage is materially below target (more than 5 percentage points) for a module that has been fully implemented.
 
@@ -139,6 +143,7 @@ Coverage is reported per test type in each test report. A phase is not complete 
 ## Rule 7: Test Reports Are Mandatory and Machine-Generated
 
 Every invocation of `/run-tests` produces a report at:
+
 ```
 docs/reports/test-reports/[NNN]-[three-word-summary].md
 ```

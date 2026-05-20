@@ -11,6 +11,7 @@ Use this skill to create or update documentation in BillGen with the correct str
 ## When to Use
 
 Use this skill when:
+
 - Creating a new file in `docs/architecture/`, `docs/reports/`, `docs/reports/test-reports/`, `docs/plans/`, `docs/decisions/`, or `docs/getting-started/`.
 - Updating an existing doc in a way that changes its meaning, structure, status, or versioned content.
 
@@ -84,6 +85,7 @@ Do not use this skill for root `AGENTS.md`, files outside `docs/`, or the templa
 ## Completion Criteria
 
 This skill is complete only when all of the following are true:
+
 - The document exists at the correct path.
 - The metadata header is complete and the `doc_id` is unique.
 - The body contains real content with no placeholder text.

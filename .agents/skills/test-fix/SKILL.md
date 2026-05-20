@@ -11,6 +11,7 @@ Use this skill when a test run has already failed and you need to repair the fai
 ## When to Use
 
 Use this skill when:
+
 - A test report shows failures.
 - Jest output is already available.
 - You need to fix a failing test, fixture, mock, or source behavior with minimal change.
@@ -53,6 +54,7 @@ Use this skill when:
 ## Completion Criteria
 
 This skill is complete only when:
+
 - The failing test has been reproduced and understood.
 - The minimal fix has been applied.
 - The narrow proving test passes again.

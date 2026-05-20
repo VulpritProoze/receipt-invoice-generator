@@ -11,6 +11,7 @@ Promptify turns a rough or half-written prompt into a structured, comprehensive 
 ## When to Use
 
 Use this skill when the user wants to:
+
 - Improve a rough prompt.
 - Turn notes into a proper agent prompt.
 - Formalize instructions for a custom agent.
@@ -45,6 +46,7 @@ Do not use this skill for general writing help, code review, or document editing
 ## Required Prompt Structure
 
 Every generated prompt must include these sections:
+
 - Role & Persona
 - Context
 - Inputs
@@ -58,6 +60,7 @@ Sections may be omitted only if genuinely not applicable, but Role, Instructions
 ## Output Rules
 
 When generating the final prompt:
+
 - Output the prompt and nothing else.
 - Start directly with the `# [Prompt Title]` heading.
 - Do not add a preamble, postamble, or commentary.
@@ -65,6 +68,7 @@ When generating the final prompt:
 - Keep the prompt raw and undecorated.
 
 After the prompt has been delivered, a brief check-in question is allowed:
+
 - Ask whether it matches what the user had in mind.
 - Ask whether anything should be adjusted.
 
@@ -79,6 +83,7 @@ After the prompt has been delivered, a brief check-in question is allowed:
 ## Completion Criteria
 
 This skill is complete only when:
+
 - The user has been interviewed enough to fill the missing prompt fields.
 - A polished prompt has been generated in the strict template.
 - The prompt contains the required sections and no extra commentary.

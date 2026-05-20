@@ -11,6 +11,7 @@ Use this skill to turn a significant decision into a reusable Architecture Decis
 ## When to Use
 
 Use this skill for:
+
 - Any npm package choice that affects the project meaningfully.
 - Any non-obvious data model, Redis key structure, or storage pattern.
 - Any convention break, limitation, or trade-off that will matter later.
@@ -72,6 +73,7 @@ Do not use this skill for trivial implementation details or choices that any com
 ## Completion Criteria
 
 This skill is complete only when all of the following are true:
+
 - The ADR exists at `docs/decisions/[DEC-NNN]-[slug].md`.
 - The metadata header is complete and the status is correct.
 - Every section contains real content with no template placeholders left behind.

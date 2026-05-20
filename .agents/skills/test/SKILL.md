@@ -11,6 +11,7 @@ Use this skill to run BillGen's test suite in a predictable way and produce a re
 ## When to Use
 
 Use this skill when you want to:
+
 - Run the full suite.
 - Run a focused subset of tests.
 - Generate or update a test report after a test run.
@@ -63,6 +64,7 @@ Use this skill when you want to:
 ## Completion Criteria
 
 This skill is complete only when:
+
 - The selected test scope has run.
 - The initial and final lint bookends both passed.
 - A test report exists in `docs/reports/test-reports/` and matches the project template.

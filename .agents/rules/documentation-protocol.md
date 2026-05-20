@@ -1,4 +1,5 @@
 # Agent Rule Prompt: Documentation Protocol
+
 **File**: `.agents/rules/documentation-protocol.md`
 **Scope**: All agents. Applies whenever a file in `docs/` is created, read, updated, or should exist but doesn't.
 **Priority**: High — documentation is not optional and is not written after the code is done.
@@ -18,8 +19,9 @@ Read and internalize every rule in this file before touching anything in `docs/`
 Documentation and code are written together. A phase is not complete until its documentation is written, accurate, and up to date.
 
 **This means, concretely:**
+
 - When you create a module in `src/modules/`, you create or update its architecture doc in `docs/architecture/` in the same session.
-- When you make a dependency decision, you write the ADR in `docs/decisions/` *before* you install the package.
+- When you make a dependency decision, you write the ADR in `docs/decisions/` _before_ you install the package.
 - When you add a new environment variable to the code, you add it to `docs/getting-started/env-setup.md` before the session ends.
 - When you run the test suite, the test report exists in `docs/reports/test-reports/` before the session ends.
 - When you complete a phase, the phase log in `AGENTS.md` is updated before the session ends.
@@ -34,7 +36,8 @@ Every Markdown file created in `docs/` begins with an H1 title followed immediat
 
 ```yaml
 ---
-doc_id: [unique identifier — ARCH-001, DEC-003, GS-005, PLAN-002, REP-TEST-012, etc.]
+doc_id:
+  [unique identifier — ARCH-001, DEC-003, GS-005, PLAN-002, REP-TEST-012, etc.]
 title: [same as H1 — human-readable]
 version: [semver — 1.0.0]
 status: [draft | review | approved | deprecated]
@@ -52,6 +55,7 @@ changelog:
 ```
 
 **Rules for each field:**
+
 - `doc_id` must be globally unique across the entire `docs/` directory. Scan existing files before assigning one.
 - `version` uses semantic versioning: **patch** (x.x.N) for typo fixes and minor corrections; **minor** (x.N.0) for new sections, structural changes, or significant rewrites of existing sections; **major** (N.0.0) for complete rewrites that change the document's core content or purpose.
 - `status` must reflect reality. A document that is wrong is not `approved`. A document no longer relevant must be marked `deprecated`, not left to rot.
@@ -66,14 +70,14 @@ A doc file without this header is incomplete. It must not be referenced as done 
 
 `docs/templates/` contains a template for every `docs/` subfolder. Always start from the correct template. Do not improvise a structure — the templates exist so that all documents in a subfolder are consistent and machine-readable by subsequent agents.
 
-| Target subfolder | Template to use |
-|-----------------|----------------|
-| `docs/architecture/` | `docs/templates/architecture-template.md` |
-| `docs/reports/` | `docs/templates/report-template.md` |
-| `docs/reports/test-reports/` | `docs/templates/test-report-template.md` |
-| `docs/plans/` | `docs/templates/plan-template.md` |
-| `docs/decisions/` | `docs/templates/adr-template.md` |
-| `docs/getting-started/` | `docs/templates/getting-started-template.md` |
+| Target subfolder             | Template to use                              |
+| ---------------------------- | -------------------------------------------- |
+| `docs/architecture/`         | `docs/templates/architecture-template.md`    |
+| `docs/reports/`              | `docs/templates/report-template.md`          |
+| `docs/reports/test-reports/` | `docs/templates/test-report-template.md`     |
+| `docs/plans/`                | `docs/templates/plan-template.md`            |
+| `docs/decisions/`            | `docs/templates/adr-template.md`             |
+| `docs/getting-started/`      | `docs/templates/getting-started-template.md` |
 
 If a document does not cleanly fit any subfolder: surface the ambiguity in `AGENTS.md` rather than guessing. The wrong subfolder means the wrong template, the wrong `doc_id` format, and confusion for every agent after you.
 
@@ -81,11 +85,12 @@ If a document does not cleanly fit any subfolder: surface the ambiguity in `AGEN
 
 ## Rule 4: Architecture Docs Stay Current With the Code
 
-Every module in `src/modules/` has a corresponding architecture doc in `docs/architecture/`. That doc reflects the *current* state of the module — not the state it was in when first written.
+Every module in `src/modules/` has a corresponding architecture doc in `docs/architecture/`. That doc reflects the _current_ state of the module — not the state it was in when first written.
 
 **When a module changes, the architecture doc must change in the same session.**
 
 What constitutes a change requiring a doc update:
+
 - New fields on a data model or Zod schema.
 - New API routes or changed route behavior.
 - New sub-components extracted or added.
@@ -96,6 +101,7 @@ What constitutes a change requiring a doc update:
 **An architecture doc that has drifted from the code is worse than no architecture doc.** A missing doc tells the next agent "this isn't documented." A wrong doc tells the next agent "I understand this" — and then they act on wrong information.
 
 An architecture doc must cover:
+
 - What the module does and why it exists in this project.
 - Its responsibilities: what it owns and what it delegates.
 - Its interfaces: inputs, outputs, and external dependencies (with references to ADRs for dependency choices).
@@ -110,6 +116,7 @@ An architecture doc must cover:
 An Architecture Decision Record (ADR) documents a significant decision. It is written before the code that implements the decision — not afterward as a rationalization.
 
 **When to write an ADR (mandatory):**
+
 - Choosing any npm package (especially over alternatives that were considered).
 - Choosing a data storage pattern, key structure, or schema shape that is non-obvious.
 - Deviating from a convention used elsewhere in the codebase.
@@ -130,19 +137,22 @@ When an ADR is superseded: update its `status` to `superseded`, add `superseded_
 At the close of every session (triggered by the `session-end` hook via the `docs-updater` skill), a session log entry is appended to `AGENTS.md` under `## Session Log`.
 
 **Format:**
+
 ```markdown
 ### Session: [ISO 8601 timestamp]
+
 **Agent**: [identifier]
 **Session focus**: [one sentence]
-**Files changed**: 
+**Files changed**:
+
 - `[path]` — [brief reason]
-**Docs updated**:
+  **Docs updated**:
 - `[path]` — [what changed]
 - (or "None — [reason]")
-**Phase log changes**: [list, or "None"]
-**ADRs created or updated**: [list, or "None"]
-**Open items added**: [list, or "None"]
-**Notes**: [anything the next agent needs to know]
+  **Phase log changes**: [list, or "None"]
+  **ADRs created or updated**: [list, or "None"]
+  **Open items added**: [list, or "None"]
+  **Notes**: [anything the next agent needs to know]
 ```
 
 The session log is **append-only**. Prior entries are never edited or deleted. They are the project's runtime history — the record of what happened, in what order, and why.

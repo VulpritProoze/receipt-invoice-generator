@@ -64,11 +64,13 @@ Work through the seven questions in order. Answer yes or no from the session dif
 ## What to Update
 
 Use the appropriate doc workflow when a gap is found:
+
 - `generate-doc` for normal docs updates.
 - `generate-adr` for dependency or decision changes.
 - `docs/reports/test-reports/` updates only when a test run produced a report that needs metadata completion.
 
 When updating docs:
+
 - Increment the version appropriately.
 - Update `updated` to today.
 - Append to the changelog instead of rewriting history.
@@ -79,6 +81,7 @@ When updating docs:
 Append a new entry to `AGENTS.md` under `## Session Log`. Do not edit or delete prior entries.
 
 The entry should include:
+
 - Session timestamp.
 - Agent name.
 - Session focus.
@@ -96,6 +99,7 @@ If all seven questions were no, include this explicit statement in the session l
 ## Completion Criteria
 
 This skill is complete only when all of the following are true:
+
 - The final session diff was evaluated, or the inability to determine it was recorded as an open item.
 - Every yes answer resulted in a concrete doc update or blocker note.
 - Any required ADRs were created or updated.

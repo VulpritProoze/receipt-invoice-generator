@@ -1,4 +1,5 @@
 # Agent Rule Prompt: Agent Communication
+
 **File**: `.agents/rules/agent-communication.md`
 **Scope**: All agents. Governs how agents communicate state, progress, blockers, and decisions — to each other and to the human.
 **Priority**: High. A multi-agent system without clear communication is a system where agents silently contradict each other, duplicate work, and leave invisible gaps. Every agent is responsible for leaving the system in a state the next agent can understand and build on.
@@ -14,6 +15,7 @@ You are an agent operating in the BillGen repository alongside other agents and 
 ## Rule 1: AGENTS.md Is the Single Source of Truth for Project State
 
 `AGENTS.md` at the repository root is the canonical record of this project's runtime state. It tracks:
+
 - Which phase the project is in and the status of every phase.
 - What has been completed, what is in progress, what is blocked.
 - What decisions were made, by which agent, and when.
@@ -21,6 +23,7 @@ You are an agent operating in the BillGen repository alongside other agents and 
 - A timestamped session log of every agent session.
 
 **Your behavior around AGENTS.md:**
+
 - Read it at the start of every session before doing anything else. It tells you what the current state is.
 - Update it at the end of every session via the `session-end` hook.
 - Never rewrite it from scratch. It is a living document — append and update, never overwrite. Prior entries are historical record.
@@ -49,6 +52,7 @@ A phase in the phase log may only be moved to `✅ Complete` when **all** of the
 When you cannot proceed on a task — because of a missing input, an unresolved question, a failing test you cannot fix, or a decision you are not authorized to make — you do not skip it silently. You do not make a guess and proceed. You do not leave a comment in code saying "fix this later" without a corresponding record in `AGENTS.md`.
 
 **The blocker protocol:**
+
 1. Stop the blocked work.
 2. Add the blocker to `## Open Questions / Blockers` in `AGENTS.md`:
    - What is blocked (specific task or phase).
@@ -66,12 +70,15 @@ When you cannot proceed on a task — because of a missing input, an unresolved 
 Every item in `## Open Questions / Blockers` is written so that a human or another agent can read it and give a concrete yes/no or choose-one answer.
 
 **Good form:**
+
 > "Should the invoice PDF be generated server-side via a Route Handler, or client-side via a browser print API? Server-side is the current plan (see DEC-004) but the PDF library [library name] requires Node.js APIs not available in the Edge Runtime. Decision needed before implementing the PDF route handler."
 
 **Bad form:**
+
 > "PDF generation needs to be figured out."
 
 When a question is resolved: prepend `~~` to strike through the resolved question and add a resolution note directly below it:
+
 ```markdown
 ~~Should the invoice PDF be generated server-side or client-side?~~
 **Resolved [date]**: Server-side via Route Handler using [library]. Edge Runtime limitation addressed by adding `export const runtime = 'nodejs'` to the route. See DEC-004 (updated).
@@ -84,12 +91,14 @@ When a question is resolved: prepend `~~` to strike through the resolved questio
 When you complete a phase and the next phase will be handled by another agent or another session, you write a hand-off note in `AGENTS.md` under `## Hand-off Notes`.
 
 **A hand-off note includes:**
+
 - Which phase was just completed and a summary of what was done.
 - Which phase comes next and what the first concrete action should be.
 - Context the next agent needs that is not obvious from the code or docs — especially conventions that were established mid-session that aren't yet reflected in a rule or ADR.
 - Known rough edges, simplifications, or technical debt introduced and why.
 
 **Example:**
+
 > **Phase 3 → Phase 4 hand-off (2025-09-14)**
 > Completed: All Zod schemas and TypeScript interfaces in `src/models/`. The `invoiceSchema` validation for `invoiceID` uses a regex — see `src/models/invoice.ts` line 8 and DEC-005. Redis key format for invoices is `invoice:[userID]:[invoiceID]` — this was chosen for SCAN pattern performance and is not yet in an ADR (flagged in open items). Phase 4 starts with the Redis client wrapper in `src/lib/redis.ts` — mock already scaffolded in `src/lib/__mocks__/redis.ts`.
 
@@ -100,6 +109,7 @@ Hand-off notes are never deleted. They accumulate as the project's running narra
 ## Rule 6: Never Assume What You Have Not Verified This Session
 
 You do not assume:
+
 - That a file exists unless you have read it in the current session.
 - That a test passes unless you ran it in the current session.
 - That a dependency is installed unless you checked `package.json` or ran `npm ls` this session.
@@ -111,14 +121,14 @@ You do not assume:
 
 ## Rule 7: Communicate Decisions at the Right Level of Formality
 
-Not every decision needs an ADR. But every non-trivial decision needs *some* communication. Match the formality to the significance:
+Not every decision needs an ADR. But every non-trivial decision needs _some_ communication. Match the formality to the significance:
 
-| Decision size | Where to communicate it |
-|--------------|------------------------|
-| Trivial — naming, minor style, obvious implementation choice | Inline comment in the code |
-| Small — one approach chosen over another within a module | Inline comment + mention in session log |
-| Medium — library chosen, data shape changed, convention deviated from | ADR in `docs/decisions/` + session log note |
-| Large — scope change, architecture change, data model change | ADR + update to architecture docs + surface to human for confirmation before implementing |
+| Decision size                                                         | Where to communicate it                                                                   |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Trivial — naming, minor style, obvious implementation choice          | Inline comment in the code                                                                |
+| Small — one approach chosen over another within a module              | Inline comment + mention in session log                                                   |
+| Medium — library chosen, data shape changed, convention deviated from | ADR in `docs/decisions/` + session log note                                               |
+| Large — scope change, architecture change, data model change          | ADR + update to architecture docs + surface to human for confirmation before implementing |
 
 **When in doubt:** over-communicate. The cost of an unnecessary comment or session log note is zero. The cost of an undocumented decision that gets reversed by the next agent is hours of debugging and rework.
 
@@ -127,6 +137,7 @@ Not every decision needs an ADR. But every non-trivial decision needs *some* com
 ## Rule 8: Escalate to the Human When Appropriate
 
 Some decisions are not yours to make. You escalate when:
+
 - A decision has significant business implications that go beyond technical trade-offs (e.g., changing the invoice ID format after invoices have been issued to customers).
 - A decision requires knowledge you cannot research (e.g., whether a specific UI interaction matches the user's mental model).
 - The `/test-fix-iterate` loop has run 5 cycles with no resolution.

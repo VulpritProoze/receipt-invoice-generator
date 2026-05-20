@@ -1,4 +1,5 @@
 # Agent Rule Prompt: Report Layout
+
 **File**: `.agents/rules/report-layout.md`
 **Scope**: All agents involved in invoice or receipt PDF generation, UI form design, or any code that produces or renders report output.
 **Priority**: High. The invoice and receipt are the primary deliverable of this application. Their layout must be accurate, professional, and match the approved visual templates — not approximated from memory or generic defaults.
@@ -20,11 +21,13 @@ The visual layout of both the invoice and the receipt is defined by two uploaded
 **If either image is not in your active context when you are about to write report layout code:**
 
 Stop. State explicitly:
+
 > "I cannot proceed with invoice/receipt layout without the template images. Please upload the Invoice template image and the Receipt template image so I can match the layout accurately."
 
 Then wait. Do not proceed with layout work until both images are available.
 
 **You must not:**
+
 - Approximate the layout from memory or from "standard invoice design."
 - Use a generic invoice layout "as a starting point" that you plan to adjust later. There is no later. There is only accurate from the start.
 - Proceed with any component, template, or PDF rendering function that places invoice or receipt fields without referencing the template images.
@@ -55,6 +58,7 @@ Write a brief analysis note — not code — before you begin rendering code. Th
 The invoice PDF contains these fields, in sections determined by the template image analysis. Below is the full field inventory:
 
 **Header / Branding:**
+
 - Company logo (from `CompanyConfig.logoUrl`)
 - Company brand name (`CompanyConfig.brandName`)
 - Company name (`CompanyConfig.companyName`)
@@ -66,6 +70,7 @@ The invoice PDF contains these fields, in sections determined by the template im
 - Currency indicator (`invoice.currency`: PHP or USD)
 
 **Bill To:**
+
 - Recipient name (`invoice.billTo`)
 - Address line (`invoice.billToAddressLine`)
 - City/municipality (`invoice.billToCityAddress`)
@@ -81,6 +86,7 @@ The invoice PDF contains these fields, in sections determined by the template im
 | Amount | `item.quantity × item.rate` (calculated at render time) | Right |
 
 **Totals Section (below the line items table):**
+
 - Subtotal: sum of all `Amount` values
 - Tax label: "Tax (N%)" where N is `invoice.taxRate × 100`
 - Tax amount: `Subtotal × invoice.taxRate`
@@ -89,6 +95,7 @@ The invoice PDF contains these fields, in sections determined by the template im
 **Critical calculation rule:** Amount, Subtotal, Tax Amount, and Invoice Total are **never stored in Redis**. They are calculated at render time from the stored `invoice.invoiceItems` array and `invoice.taxRate`. If you find code that stores these calculated values, remove it.
 
 **Currency symbol:** derive at render time from `invoice.currency`:
+
 - `'PHP'` → `₱`
 - `'USD'` → `$`
 
@@ -101,20 +108,24 @@ Never hardcode a currency symbol. Never use a symbol that doesn't correspond to 
 The receipt PDF contains these fields, in sections determined by the template image analysis:
 
 **Header:**
+
 - Label: "RECEIPT" or "PAYMENT RECEIPT" (match the template)
 - Transaction ID / Receipt ID: the `receipt.receiptID` field — format `CH_` + 17 uppercase alphanumeric characters, e.g., `CH_A3K9MXQP2T7VWRJN`
 - Date (`receipt.date`)
 
 **Account Billed:**
+
 - Account Billed: `username (userEmail)` — e.g., `jsmith (jsmith@company.com)`
 - Charged To: `creditCardType **** **** **** [last 4]` — e.g., `Mastercard **** **** **** 4242`
 
 **Items / Transaction Detail:**
+
 - Reference Invoice ID (`receipt.invoiceID`)
 - Line items (snapshot from the invoice): Description, Quantity, Rate, Amount per item
 - Total: sum of all item amounts
 
 **Company Branding Footer (bottom of receipt):**
+
 - Company brand name (`CompanyConfig.brandName`)
 - Company legal name (`CompanyConfig.companyName`)
 - Company URL (`CompanyConfig.companyUrl`)
@@ -132,6 +143,7 @@ The receipt PDF contains these fields, in sections determined by the template im
 **PDF generation is server-side only.** It happens in a Route Handler or Server Action. It never happens in a Client Component, never in `useEffect`, never via `window.print()`.
 
 **Output delivery:**
+
 - The PDF is returned as a binary HTTP response.
 - Response headers: `Content-Type: application/pdf` and `Content-Disposition: attachment; filename="[invoiceID].pdf"` (or `[receiptID].pdf`).
 - The browser downloads the file. It is not opened in an iframe or new tab by default.
@@ -149,11 +161,13 @@ The receipt PDF contains these fields, in sections determined by the template im
 The invoice generation UI (the form the user fills in, not the PDF itself) must implement:
 
 **Date range filter:**
+
 - Start date and end date inputs filter the displayed `InvoiceItem` rows by `item.date`.
 - Items outside the range are hidden from the list but are not deleted from the database.
 - The filter resets on page load — it is not persisted.
 
 **Multi-select with Shift+Click range selection:**
+
 - Each `InvoiceItem` row has a checkbox.
 - Clicking a single checkbox selects or deselects that item.
 - Shift+Click on a checkbox selects all items between the last-selected item and the current item (range selection), matching the behavior of standard file managers and spreadsheet applications.
@@ -161,6 +175,7 @@ The invoice generation UI (the form the user fills in, not the PDF itself) must 
 - The count of selected items and their running subtotal (before tax) is displayed in real time as selection changes.
 
 **Invoice form fields:**
+
 - Bill To: name (required), address line, city, postal/province, country.
 - Due Date: date picker, required.
 - Currency: dropdown with PHP and USD options, required.

@@ -13,6 +13,7 @@ This skill follows the repository's documented testing infrastructure in [docs/a
 ## When to Use
 
 Use this skill when the user wants to:
+
 - Create tests for one or more named modules.
 - Generate tests based on recent features or bug fixes already implemented.
 - Add the smallest relevant test set for a change.
@@ -78,6 +79,7 @@ Do not use this skill when the user explicitly wants a full suite-wide expansion
 ## Completion Criteria
 
 This skill is complete only when:
+
 - The test scope is explicit or confirmed.
 - The generated tests cover only the requested modules or recent-work targets.
 - The generated tests cover all applicable required test families for each selected module when possible, or clearly note why a family does not apply.

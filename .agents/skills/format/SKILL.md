@@ -11,6 +11,7 @@ Use this skill to keep files consistently formatted across BillGen. Prettier own
 ## When to Use
 
 Use this skill:
+
 - Automatically through the `post-edit` hook after any in-scope file is written or modified.
 - Manually for batch formatting, a focused file check, or a pre-phase formatting sweep.
 
@@ -19,6 +20,7 @@ Do not use this skill for files outside the formatting scope or for `package-loc
 ## Configuration Requirements
 
 Before invoking, confirm:
+
 - `prettier` is installed as a dev dependency.
 - `.prettierrc` exists at the project root with the expected settings.
 - `eslint-config-prettier` is installed and is the last entry in ESLint `extends`.
@@ -28,6 +30,7 @@ If `.prettierrc` is missing or differs, do not modify it without an ADR. Record 
 ## Formatting Scope
 
 Prettier runs on:
+
 - `src/**/*.ts`
 - `src/**/*.tsx`
 - `**/*.json` except `package-lock.json`
@@ -38,6 +41,7 @@ Prettier runs on:
 - Root config files such as `.eslintrc.json`, `.prettierrc`, `jest.config.ts`, `next.config.ts`, and `tsconfig.json`
 
 Prettier does not run on:
+
 - `node_modules/`, `.next/`
 - Generated PDFs and exported CSVs
 - `.env`, `.env.local`, `.env.example`
@@ -88,6 +92,7 @@ Do not use `prettier-ignore` for style disagreements. If a formatting rule shoul
 ## Completion Criteria
 
 This skill is complete only when all of the following are true:
+
 - Prettier has been applied to the target.
 - ESLint `--fix` has been run on the same target.
 - `npx prettier --check [target]` exits cleanly.

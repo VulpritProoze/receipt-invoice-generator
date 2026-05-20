@@ -1,4 +1,10 @@
-type RedisValue = string | number | boolean | null | RedisValue[] | { [key: string]: RedisValue };
+type RedisValue =
+  | string
+  | number
+  | boolean
+  | null
+  | RedisValue[]
+  | { [key: string]: RedisValue };
 
 export class MockRedis {
   private readonly store = new Map<string, RedisValue>();
@@ -21,7 +27,9 @@ export class MockRedis {
     return Object.keys(value).length;
   }
 
-  async hgetall<T extends Record<string, RedisValue>>(key: string): Promise<T | null> {
+  async hgetall<T extends Record<string, RedisValue>>(
+    key: string
+  ): Promise<T | null> {
     return (this.store.get(key) as T | undefined) ?? null;
   }
 

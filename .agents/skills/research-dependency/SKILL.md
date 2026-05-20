@@ -11,6 +11,7 @@ Use this skill as a hard gate before any npm package change in BillGen. The pack
 ## When to Use
 
 Use this skill before:
+
 - Adding a new npm dependency, production or dev.
 - Upgrading a package to a new major version.
 - Using a package from `package.json` that has not been researched in the current session.
@@ -75,6 +76,7 @@ Do not run `npm install` until the ADR exists and is in accepted status. A depre
 ## Completion Criteria
 
 This skill is complete only when all of the following are true:
+
 - The package has been researched in the current session.
 - If deprecated, a replacement has been researched and chosen instead.
 - The ADR exists in `docs/decisions/` with `accepted` status and full content.

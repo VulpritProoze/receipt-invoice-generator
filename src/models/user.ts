@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-const maskedCreditCardSchema = z.string().regex(/^\*{4} \*{4} \*{4} \d{4}$/, 'creditCardNumber must be masked as **** **** **** 1234');
+const maskedCreditCardSchema = z
+  .string()
+  .regex(
+    /^\*{4} \*{4} \*{4} \d{4}$/,
+    'creditCardNumber must be masked as **** **** **** 1234'
+  );
 
 export interface User {
   userID: string;

@@ -11,6 +11,7 @@ Use this skill to keep BillGen lint-clean. ESLint is treated as a correctness ga
 ## When to Use
 
 Use this skill:
+
 - Automatically through the `pre-read` hook before opening any `.ts` or `.tsx` file.
 - Automatically as the initial and final ESLint bookends in `/run-tests`.
 - Automatically through the post-edit hook after file writes, when `eslint --fix` is appropriate.
@@ -21,6 +22,7 @@ Do not use this skill to change `.eslintrc.json` unless an ADR exists for that c
 ## Scope Selection
 
 Choose the narrowest scope that matches the trigger:
+
 - Pre-read hook for a specific file: `eslint [filepath]`
 - `/run-tests` initial or final bookend: `eslint src/`
 - Manual module check: `eslint src/modules/[name]/`
@@ -64,6 +66,7 @@ Choose the narrowest scope that matches the trigger:
 ## Configuration Expectations
 
 The repository should have these dev dependencies available:
+
 - `eslint`
 - `@typescript-eslint/parser`
 - `@typescript-eslint/eslint-plugin`
@@ -72,6 +75,7 @@ The repository should have these dev dependencies available:
 - `eslint-config-prettier`
 
 The ESLint configuration should include:
+
 - `parser: "@typescript-eslint/parser"`
 - `parserOptions.project` pointing at `./tsconfig.json`
 - `eslint-config-prettier` as the last `extends` entry
@@ -90,6 +94,7 @@ The ESLint configuration should include:
 ## Completion Criteria
 
 This skill is complete only when all of the following are true:
+
 - The chosen ESLint scope has been evaluated.
 - The scope returns zero errors and zero warnings.
 - Any auto-fixes have been applied and re-verified.

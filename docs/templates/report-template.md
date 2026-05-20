@@ -1,6 +1,7 @@
 # [Report Title]
 
 ---
+
 doc_id: REP-XXX
 title:
 version: 1.0.0
@@ -11,22 +12,28 @@ author:
 reviewers:
 tags: report
 changelog:
-  - version: 1.0.0
-    date:
-    author:
-    note: Initial
+
+- version: 1.0.0
+  date:
+  author:
+  note: Initial
+
 ---
 
 ## Summary
+
 One paragraph executive summary.
 
 ## Findings
+
 ### [Finding 1]
+
 ### [Finding 2]
 
 ## Metrics
+
 | Metric | Value | Target | Status |
-|--------|-------|--------|--------|
+| ------ | ----- | ------ | ------ |
 
 ## Recommendations
 

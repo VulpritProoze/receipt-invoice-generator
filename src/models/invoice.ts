@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
-const isoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'expected ISO date in YYYY-MM-DD format');
+const isoDateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'expected ISO date in YYYY-MM-DD format');
 
 export interface InvoiceItem {
   itemID: string;
@@ -36,7 +38,9 @@ export const invoiceItemSchema = z.object({
 });
 
 export const invoiceSchema = z.object({
-  invoiceID: z.string().regex(/^INV\d{9}$/, 'invoiceID must match INV#########'),
+  invoiceID: z
+    .string()
+    .regex(/^INV\d{9}$/, 'invoiceID must match INV#########'),
   invoiceDate: isoDateSchema,
   terms: z.string().min(1),
   dueDate: isoDateSchema,
