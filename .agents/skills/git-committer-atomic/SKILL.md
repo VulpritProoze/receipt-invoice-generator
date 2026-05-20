@@ -1,6 +1,6 @@
 ---
 name: git-committer-atomic
-description: "Use this skill when the user wants to commit existing uncommitted changes as clean, atomic commits — one per logical implementation stage. The skill scans repo state, studies recent commit history for style context, groups changes into independent commits, writes human-readable messages with optional bodies for complex changes, handles orphaned files at the end, and never executes without explicit user approval."
+description: 'Use this skill when the user wants to commit existing uncommitted changes as clean, atomic commits — one per logical implementation stage. The skill scans repo state, studies recent commit history for style context, groups changes into independent commits, writes human-readable messages with optional bodies for complex changes, handles orphaned files at the end, and never executes without explicit user approval.'
 user-invocable: true
 ---
 
@@ -48,11 +48,14 @@ git config user.email
 
 From `git log --oneline -20`, extract:
 
-- The commit message style in use (conventional commits, imperative sentences, ticket-prefixed, etc.)
 - The typical scope of a single commit (narrow or broad)
 - Any patterns in how this repo separates concerns across commits
 
-Use this as your style guide when writing proposed messages. Do not impose conventional commits if the repo doesn't use them. Mirror the existing style.
+**This repository uses Conventional Commits format.** All commit messages must follow the specification:
+- Format: `type(scope): subject`
+- Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+- Scope is optional but recommended for clarity
+- Subject must be lowercase, imperative, and under 72 characters
 
 If `user.name` or `user.email` is empty or unconfigured, **stop here** and tell the developer before proceeding. Do not attempt to set config automatically.
 
@@ -89,28 +92,59 @@ If yes to any of these — split further.
 
 ---
 
-### Phase 3 — Write Commit Messages
+### Phase 3 — Write Commit Messages (Conventional Commits)
 
-For each commit group, write a commit message using the repo's established style (from Phase 1).
+For each commit group, write a commit message following the **Conventional Commits** specification.
 
-**Subject line rules:**
+**Subject line format:**
 
-- Imperative, present tense ("add", "fix", "migrate" — not "added", "fixes")
-- Under 72 characters
-- Human-readable and specific — not "update files", "more changes", or "fix stuff"
-- Reflects the actual implementation stage, not a file list
+```
+type(scope): subject
+```
+
+**Type (required):**
+- `feat`: New feature or capability
+- `fix`: Bug fix
+- `docs`: Documentation changes only
+- `style`: Code style changes (formatting, missing semicolons, etc.)
+- `refactor`: Code restructuring without behavior change
+- `perf`: Performance improvements
+- `test`: Adding or updating tests
+- `build`: Build system or dependency changes
+- `ci`: CI/CD configuration changes
+- `chore`: Maintenance tasks, tooling updates
+- `revert`: Reverting a previous commit
+
+**Scope (optional but recommended):**
+- Indicates the area of change (e.g., `auth`, `api`, `ui`, `hooks`, `models`)
+- Use lowercase, no spaces
+- Omit parentheses if no scope: `feat: add user authentication`
+
+**Subject (required):**
+- Lowercase, imperative mood ("add" not "added" or "adds")
+- No period at the end
+- Under 72 characters total (including type and scope)
+- Specific and descriptive — not "update files" or "fix stuff"
+
+**Examples:**
+- `feat(auth): add JWT middleware for Express routes`
+- `fix(api): handle null response in user endpoint`
+- `docs: update setup guide with environment variables`
+- `refactor(hooks): extract auth logic into custom hook`
+- `test(models): add schema validation tests`
 
 **Body rules (use your judgment — include a body when):**
 
 - The commit touches more than 3 files
-- The change involves a non-obvious decision (e.g. why a certain approach was taken)
+- The change involves a non-obvious decision
 - The commit is a refactor, migration, or architectural change
-- A future developer reading this commit in isolation would need more than the subject line to understand it
+- Breaking changes must be documented with `BREAKING CHANGE:` footer
+- A future developer needs more context than the subject provides
 
 **Body structure when included:**
 
 ```
-<subject line>
+type(scope): subject
 
 <1–3 sentence explanation of what changed and why — not how, the diff shows that. Focus on intent and context.>
 
@@ -120,7 +154,13 @@ Changes:
 
 Notes:
 - <any non-obvious decision, known limitation, or follow-up needed>
+
+BREAKING CHANGE: <description if applicable>
 ```
+
+**Breaking changes:**
+- Must include `BREAKING CHANGE:` in the footer or `!` after type/scope
+- Example: `feat(api)!: change user endpoint response format`
 
 Omit the body entirely for simple, self-evident commits. Do not pad short commits with filler prose.
 
@@ -208,7 +248,22 @@ Once the developer approves the full plan (including orphaned file resolution):
 
 ---
 
-### Phase 8 — Final Report
+### Phase 8 — Create Commit Report Document
+
+After execution, create a report document in `docs/reports/commit-reports/` using `docs/templates/commit-report-template.md`.
+
+The report should include:
+
+- The session timestamp.
+- The commit hashes, subject lines, and scope for each atomic commit.
+- Any orphaned files and how they were resolved.
+- Any validation notes, blockers, or follow-up items.
+
+Use a new `REP-COMMIT-NNN` identifier and a descriptive filename such as `REP-COMMIT-001-atomic-commit-report.md`. Keep the report aligned with the final repository state; if the worktree is not clean, state the remaining files explicitly so nothing is hidden.
+
+---
+
+### Phase 9 — Final Report
 
 After execution, print:
 
@@ -228,13 +283,14 @@ If anything is still uncommitted (e.g. the developer chose to leave orphans), li
 
 ## Output Format Summary
 
-| Phase   | Output                                                          |
-| ------- | --------------------------------------------------------------- |
-| Phase 1 | Git identity + recent log style analysis (printed inline)       |
-| Phase 5 | Commit plan with files, messages, and reasons — awaits approval |
-| Phase 6 | Orphaned file list with resolution options — awaits answer      |
-| Phase 7 | Silent execution (no output until complete)                     |
-| Phase 8 | Final commit list with short hashes + repo status               |
+| Phase   | Output                                                            |
+| ------- | ----------------------------------------------------------------- |
+| Phase 1 | Git identity + recent log style analysis (printed inline)         |
+| Phase 5 | Commit plan with files, messages, and reasons — awaits approval   |
+| Phase 6 | Orphaned file list with resolution options — awaits answer        |
+| Phase 7 | Silent execution (no output until complete)                       |
+| Phase 8 | Commit report document creation in `docs/reports/commit-reports/` |
+| Phase 9 | Final commit list with short hashes + repo status                 |
 
 ---
 
