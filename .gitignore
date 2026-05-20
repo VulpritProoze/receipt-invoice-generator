@@ -7,4 +7,4 @@ dist
 .env.*.local
 npm-debug.log*
 *.tsbuildinfo
-.bob/notes/
+# .bob/notes/
