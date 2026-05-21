@@ -28,7 +28,12 @@ export async function POST(req: NextRequest) {
       'invoiceItems',
       'taxRate'
     ];
-    const missingFields = requiredFields.filter((field) => !body[field]);
+    const missingFields = requiredFields.filter(
+      (field) =>
+        body[field] === undefined ||
+        body[field] === null ||
+        (typeof body[field] === 'string' && body[field].trim() === '')
+    );
 
     if (missingFields.length > 0) {
       return NextResponse.json(
