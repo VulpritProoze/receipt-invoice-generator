@@ -86,9 +86,9 @@ describe('Report Generation Integration Tests', () => {
       // Setup: Store invoice and company config in mock Redis
       await redis.set(
         `invoice:user123:INV000000001`,
-        JSON.stringify(mockInvoice)
+        mockInvoice
       );
-      await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
+      await redis.set(`company:user123`, mockCompanyConfig);
 
       // Execute: Generate invoice report
       const pdfBuffer = await generateInvoiceReport('user123', 'INV000000001');
@@ -104,7 +104,7 @@ describe('Report Generation Integration Tests', () => {
 
     it('should fail when invoice does not exist in database', async () => {
       // Setup: Only store company config, no invoice
-      await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
+      await redis.set(`company:user123`, mockCompanyConfig);
 
       // Execute & Verify: Should throw error
       await expect(
@@ -116,7 +116,7 @@ describe('Report Generation Integration Tests', () => {
       // Setup: Only store invoice, no company config
       await redis.set(
         `invoice:user123:INV000000001`,
-        JSON.stringify(mockInvoice)
+        mockInvoice
       );
 
       // Execute & Verify: Should throw error
@@ -129,9 +129,9 @@ describe('Report Generation Integration Tests', () => {
       // Setup: Store PHP invoice
       await redis.set(
         `invoice:user123:INV000000001`,
-        JSON.stringify(mockInvoice)
+        mockInvoice
       );
-      await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
+      await redis.set(`company:user123`, mockCompanyConfig);
 
       const phpPDF = await generateInvoiceReport('user123', 'INV000000001');
 
@@ -143,7 +143,7 @@ describe('Report Generation Integration Tests', () => {
       };
       await redis.set(
         `invoice:user123:INV000000002`,
-        JSON.stringify(usdInvoice)
+        usdInvoice
       );
 
       const usdPDF = await generateInvoiceReport('user123', 'INV000000002');
@@ -163,13 +163,13 @@ describe('Report Generation Integration Tests', () => {
       // Setup: Store receipt, invoice, and company config in mock Redis
       await redis.set(
         `receipt:user123:CH_A3K9MXQP2T7VWRJN5`,
-        JSON.stringify(mockReceipt)
+        mockReceipt
       );
       await redis.set(
         `invoice:user123:INV000000001`,
-        JSON.stringify(mockInvoice)
+        mockInvoice
       );
-      await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
+      await redis.set(`company:user123`, mockCompanyConfig);
 
       // Execute: Generate receipt report
       const pdfBuffer = await generateReceiptReport(
@@ -190,9 +190,9 @@ describe('Report Generation Integration Tests', () => {
       // Setup: Store invoice and company config, but no receipt
       await redis.set(
         `invoice:user123:INV000000001`,
-        JSON.stringify(mockInvoice)
+        mockInvoice
       );
-      await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
+      await redis.set(`company:user123`, mockCompanyConfig);
 
       // Execute & Verify: Should throw error
       await expect(
@@ -204,9 +204,9 @@ describe('Report Generation Integration Tests', () => {
       // Setup: Store receipt and company config, but no invoice
       await redis.set(
         `receipt:user123:CH_A3K9MXQP2T7VWRJN5`,
-        JSON.stringify(mockReceipt)
+        mockReceipt
       );
-      await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
+      await redis.set(`company:user123`, mockCompanyConfig);
 
       // Execute & Verify: Should throw error
       await expect(
@@ -218,11 +218,11 @@ describe('Report Generation Integration Tests', () => {
       // Setup: Store receipt and invoice, but no company config
       await redis.set(
         `receipt:user123:CH_A3K9MXQP2T7VWRJN5`,
-        JSON.stringify(mockReceipt)
+        mockReceipt
       );
       await redis.set(
         `invoice:user123:INV000000001`,
-        JSON.stringify(mockInvoice)
+        mockInvoice
       );
 
       // Execute & Verify: Should throw error
@@ -247,15 +247,15 @@ describe('Report Generation Integration Tests', () => {
       };
       await redis.set(
         `receipt:user123:CH_A3K9MXQP2T7VWRJN5`,
-        JSON.stringify(receiptWithDifferentItems)
+        receiptWithDifferentItems
       );
 
       // Store invoice with correct items
       await redis.set(
         `invoice:user123:INV000000001`,
-        JSON.stringify(mockInvoice)
+        mockInvoice
       );
-      await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
+      await redis.set(`company:user123`, mockCompanyConfig);
 
       // Execute: Generate receipt
       const pdfBuffer = await generateReceiptReport(
@@ -279,9 +279,9 @@ describe('Report Generation Integration Tests', () => {
       // Setup: Store invoice for user123
       await redis.set(
         `invoice:user123:INV000000001`,
-        JSON.stringify(mockInvoice)
+        mockInvoice
       );
-      await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
+      await redis.set(`company:user123`, mockCompanyConfig);
 
       // Execute: Try to access as different user
       await expect(
@@ -293,13 +293,13 @@ describe('Report Generation Integration Tests', () => {
       // Setup: Store receipt for user123
       await redis.set(
         `receipt:user123:CH_A3K9MXQP2T7VWRJN5`,
-        JSON.stringify(mockReceipt)
+        mockReceipt
       );
       await redis.set(
         `invoice:user123:INV000000001`,
-        JSON.stringify(mockInvoice)
+        mockInvoice
       );
-      await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
+      await redis.set(`company:user123`, mockCompanyConfig);
 
       // Execute: Try to access as different user
       await expect(

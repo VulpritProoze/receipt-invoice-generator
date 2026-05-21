@@ -150,7 +150,7 @@ describe('Core Modules Security', () => {
     it('should isolate invoice data by userID', async () => {
       const userA = await registerUser({
         username: 'usera',
-        userEmail: 'usera@test.com',
+        userEmail: 'usera_isolate@test.com',
         fullName: 'User A',
         creditCardNumber: '4111111111111111',
         creditCardType: 'Visa'
@@ -158,7 +158,7 @@ describe('Core Modules Security', () => {
 
       const userB = await registerUser({
         username: 'userb',
-        userEmail: 'userb@test.com',
+        userEmail: 'userb_isolate@test.com',
         fullName: 'User B',
         creditCardNumber: '5555555555554444',
         creditCardType: 'Mastercard'
@@ -265,7 +265,7 @@ describe('Core Modules Security', () => {
     it('should prevent email takeover via update', async () => {
       const _userA = await registerUser({
         username: 'usera',
-        userEmail: 'usera@test.com',
+        userEmail: 'usera_update@test.com',
         fullName: 'User A',
         creditCardNumber: '4111111111111111',
         creditCardType: 'Visa'
@@ -273,7 +273,7 @@ describe('Core Modules Security', () => {
 
       const userB = await registerUser({
         username: 'userb',
-        userEmail: 'userb@test.com',
+        userEmail: 'userb_update@test.com',
         fullName: 'User B',
         creditCardNumber: '5555555555554444',
         creditCardType: 'Mastercard'
@@ -281,7 +281,7 @@ describe('Core Modules Security', () => {
 
       // User B attempts to change email to User A's email
       await expect(
-        updateUserProfile(userB.userID, { userEmail: 'usera@test.com' })
+        updateUserProfile(userB.userID, { userEmail: 'usera_update@test.com' })
       ).rejects.toThrow('Email already in use by another account');
     });
   });
