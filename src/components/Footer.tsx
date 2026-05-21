@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Footer(): JSX.Element {
+export default function Footer() {
   const year = new Date().getFullYear();
   return (
     <footer className="border-t bg-white">

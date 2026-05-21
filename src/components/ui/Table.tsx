@@ -84,7 +84,7 @@ export default function Table({
                         : 'text-left'
                   }`}
                 >
-                  {row[column.key]}
+                  {row[column.key] as React.ReactNode}
                 </td>
               ))}
             </tr>
