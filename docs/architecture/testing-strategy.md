@@ -4,10 +4,10 @@
 
 doc_id: ARCH-006
 title: Testing Strategy
-version: 1.1.0
+version: 1.1.1
 status: draft
 created: 2026-05-20
-updated: 2026-05-20
+updated: 2026-05-21
 author: Copilot
 reviewers: none
 tags: architecture, testing, jest, zod
@@ -21,6 +21,10 @@ changelog:
   date: 2026-05-20
   author: Copilot
   note: Documented the initial Jest harness, schema tests, and test report directory
+- version: 1.1.1
+  date: 2026-05-21
+  author: docs
+  note: Updated ESLint status to reflect the completed flat-config migration and cleanup.
 
 ---
 
@@ -72,4 +76,4 @@ Import fixtures live under `src/modules/import/__fixtures__/` and should be name
 
 - `/run-tests` is the primary suite runner and must always generate a report.
 - `/test-fix-iterate` handles failure repair in small loops until the suite is green or the blocker is clear.
-- The current workspace still needs an ESLint 10 flat-config migration before lint bookends can run cleanly against the existing `eslint` binary.
+- The ESLint 10 flat-config migration has been completed, and all source-code lint violations have been resolved. Linting runs cleanly as a test suite bookend.

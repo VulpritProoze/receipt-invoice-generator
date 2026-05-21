@@ -1,6 +1,7 @@
 # Database Layer - Redis Key Format Strategy
 
 ---
+
 doc_id: ARCH-DB-001
 title: Database Layer - Redis Key Format Strategy
 version: 1.0.0
@@ -11,10 +12,12 @@ author: Copilot
 reviewers: none
 tags: database, redis, architecture, key-format
 changelog:
-  - version: 1.0.0
-    date: 2026-05-20
-    author: Copilot
-    note: Initial documentation for Phase 4 database layer
+
+- version: 1.0.0
+  date: 2026-05-20
+  author: Copilot
+  note: Initial documentation for Phase 4 database layer
+
 ---
 
 ## Overview
@@ -30,6 +33,7 @@ All Redis keys follow a hierarchical pattern with colon (`:`) separators:
 ```
 
 This format was chosen for:
+
 - **SCAN performance**: Hierarchical keys enable efficient pattern matching with `KEYS` command
 - **User isolation**: All user data is scoped by userID, preventing cross-user data access
 - **Readability**: Keys are self-documenting and easy to understand in Redis CLI
@@ -38,33 +42,41 @@ This format was chosen for:
 ## Primary Key Patterns
 
 ### User Data
+
 ```
 user:[userID]
 ```
+
 Stores complete User object as JSON.
 
 **Example**: `user:550e8400-e29b-41d4-a716-446655440000`
 
 ### Invoice Data
+
 ```
 invoice:[userID]:[invoiceID]
 ```
+
 Stores complete Invoice object as JSON. Scoped by userID for data isolation.
 
 **Example**: `invoice:550e8400-e29b-41d4-a716-446655440000:INV000000001`
 
 ### Receipt Data
+
 ```
 receipt:[userID]:[receiptID]
 ```
+
 Stores complete Receipt object as JSON. Scoped by userID for data isolation.
 
 **Example**: `receipt:550e8400-e29b-41d4-a716-446655440000:CH_A3K9MXQP2T7VWRJN`
 
 ### Company Configuration
+
 ```
 company:[userID]
 ```
+
 Stores CompanyConfig object as JSON. One config per user.
 
 **Example**: `company:550e8400-e29b-41d4-a716-446655440000`
@@ -74,9 +86,11 @@ Stores CompanyConfig object as JSON. One config per user.
 Secondary indexes enable lookups by fields other than the primary key. They store only the primary key value, not the full object.
 
 ### User Email Index
+
 ```
 user:email:[email] -> userID
 ```
+
 Maps email address to userID for `getUserByEmail()` lookups.
 
 **Example**: `user:email:john@example.com` → `550e8400-e29b-41d4-a716-446655440000`
@@ -84,9 +98,11 @@ Maps email address to userID for `getUserByEmail()` lookups.
 **Maintenance**: Created on user creation, updated on email change, deleted on user deletion.
 
 ### Receipt Invoice Index
+
 ```
 receipt:invoice:[userID]:[invoiceID] -> receiptID
 ```
+
 Maps invoiceID to receiptID for `getReceiptByInvoiceID()` lookups.
 
 **Example**: `receipt:invoice:550e8400-e29b-41d4-a716-446655440000:INV000000001` → `CH_A3K9MXQP2T7VWRJN`
@@ -98,9 +114,11 @@ Maps invoiceID to receiptID for `getReceiptByInvoiceID()` lookups.
 Sequence counters use Redis `INCR` to generate sequential numeric IDs.
 
 ### Invoice Sequence
+
 ```
 invoice:sequence:[userID]
 ```
+
 Stores the next invoice sequence number for a user. Incremented atomically with `INCR`.
 
 **Example**: `invoice:sequence:550e8400-e29b-41d4-a716-446655440000` → `42`
@@ -149,33 +167,40 @@ Database operations follow these error handling rules:
 ## Key Lifecycle
 
 ### User Creation
+
 1. Create `user:[userID]` with user data
 2. Create `user:email:[email]` index
 
 ### Invoice Creation
+
 1. Create `invoice:[userID]:[invoiceID]` with invoice data
 2. Increment `invoice:sequence:[userID]` if generating new ID
 
 ### Receipt Creation
+
 1. Create `receipt:[userID]:[receiptID]` with receipt data
 2. Create `receipt:invoice:[userID]:[invoiceID]` index
 
 ### User Deletion
+
 1. Delete `user:[userID]`
 2. Delete `user:email:[email]` index
 3. **Note**: Invoices and receipts are NOT automatically deleted (business decision - preserve financial records)
 
 ### Invoice Deletion
+
 1. Delete `invoice:[userID]:[invoiceID]`
 2. **Note**: Associated receipt is NOT automatically deleted (business decision)
 
 ### Receipt Deletion
+
 1. Delete `receipt:[userID]:[receiptID]`
 2. Delete `receipt:invoice:[userID]:[invoiceID]` index
 
 ## Future Considerations
 
 ### Scaling Considerations
+
 - Current pattern works well for up to ~100K keys per user
 - For larger scales, consider:
   - Using `SCAN` instead of `KEYS` for list operations
@@ -183,13 +208,17 @@ Database operations follow these error handling rules:
   - Adding Redis Cluster support for horizontal scaling
 
 ### Additional Indexes
+
 If query patterns change, consider adding:
+
 - Invoice date range index for faster date filtering
 - Receipt date index for chronological queries
 - User creation date index for admin queries
 
 ### Data Migration
+
 When schema changes occur:
+
 1. Update Zod schema with new fields (make them optional if adding to existing data)
 2. Update database operation functions
 3. Run migration script to update existing records

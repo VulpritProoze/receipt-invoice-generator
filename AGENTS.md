@@ -3,7 +3,7 @@
 ## Project: BillGen
 
 **Status**: Bootstrapping
-**Last Updated**: 2026-05-20
+**Last Updated**: 2026-05-21
 **Active Agent**: Copilot
 
 ---
@@ -30,7 +30,7 @@
 ## Open Questions / Blockers
 
 - [ ] Confirm whether the app should remain single-tenant for the first bootstrap pass
-- [ ] Migrate ESLint 10 to flat config or otherwise restore lint execution against the existing repo rules so the test lint bookends can run. Current `.eslintrc.json` is not recognized by the installed ESLint binary.
+- [x] Migrate ESLint 10 to flat config and restore lint execution against the existing repo rules so the test lint bookends can run. Zero errors and zero warnings achieved.
 
 ---
 
@@ -76,3 +76,56 @@ Scaffolded the core Next.js workspace, added typed models with Zod schemas, crea
     **Test run or no test run**: No test run this session
     **Open items added**: None
     **Notes**: No documentation updates required this session. Evaluated: source changes, package changes, model changes, env var changes, test activity, phase status changes, and deployment changes. None detected.
+
+### Session: 2026-05-21T11:06:55+08:00
+
+**Agent**: Antigravity (Orchestrator)
+**Session focus**: Resolve major npm install dependency conflicts, update vulnerable packages, and restore lint test execution.
+**Files changed**:
+- `package.json` — Added ESLint and PostCSS overrides, replaced `xlsx` with `xlsx-js-style`.
+- `src/modules/import/xlsxParser.ts` — Updated imports to use `xlsx-js-style`.
+- `src/modules/import/xlsxParser.unit.test.ts` — Updated imports to use `xlsx-js-style`.
+**Docs updated**:
+- `docs/plans/npm-dependency-fix.md` — Documented the fixes.
+**Phase log changes**: None
+**ADRs created or updated**: Pending ADR for `xlsx-js-style` migration.
+**Test run or no test run**: Ran `npm install`, `npm audit`, and `npm run lint`.
+**Open items added**: 
+- `npm run lint` now executes with the new flat config but uncovers 43 pre-existing source-code violations that need fixing.
+**Notes**: Dependency issues blocking the workspace have been fully cleared.
+
+### Session: 2026-05-21T11:23:00+08:00
+
+**Agent**: Refactor Agent
+**Session focus**: Refactored the codebase to resolve all 43 ESLint violations in `src/`.
+**Files changed**:
+- `src/app/api/import/route.contract.test.ts`
+- `src/app/api/import/route.ts`
+- `src/app/api/invoices/route.ts`
+- `src/app/api/onboarding/route.contract.test.ts`
+- `src/app/api/receipts/route.ts`
+- `src/app/api/users/route.ts`
+- `src/lib/db/company.ts`
+- `src/lib/db/invoices.ts`
+- `src/lib/db/receipts.ts`
+- `src/lib/db/users.ts`
+- `src/lib/idGenerator.ts`
+- `src/lib/maskCreditCard.unit.test.ts`
+- `src/models/company.schema.test.ts`
+- `src/models/user.schema.test.ts`
+- `src/modules/core.security.test.ts`
+- `src/modules/import/import.integration.test.ts`
+- `src/modules/import/importService.ts`
+- `src/modules/import/importService.unit.test.ts`
+- `src/modules/import/xlsxParser.ts`
+- `src/modules/invoices/invoiceService.ts`
+- `src/modules/invoices/invoiceService.unit.test.ts`
+**Docs updated**:
+- `docs/reports/refactor-report.md` — Created refactor report documenting the changes.
+- `docs/reports/test-reports/REP-TEST-002-eslint-lint-fix-verify.md` — Created test report documenting the post-lint-fix test run verification.
+**Phase log changes**: None.
+**ADRs created or updated**: None.
+**Test run or no test run**: Ran `npm test` and `npx eslint src/ --max-warnings 0`.
+**Open items added**:
+- Fix Jest environment polyfills (missing `TextEncoder`, `Request` globals) to allow the full test suite to execute successfully.
+**Notes**: ESLint check now passes with zero errors and zero warnings. Existing environment configuration issues in Jest still cause unit and contract tests to fail in the console runner, unrelated to the refactored code.
