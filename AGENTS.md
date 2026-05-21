@@ -129,3 +129,23 @@ Scaffolded the core Next.js workspace, added typed models with Zod schemas, crea
 **Open items added**:
 - Fix Jest environment polyfills (missing `TextEncoder`, `Request` globals) to allow the full test suite to execute successfully.
 **Notes**: ESLint check now passes with zero errors and zero warnings. Existing environment configuration issues in Jest still cause unit and contract tests to fail in the console runner, unrelated to the refactored code.
+
+### Session: 2026-05-21T12:44:53+08:00
+
+**Agent**: Antigravity (Orchestrator)
+**Session focus**: Create refactor report template and update agent/skill configurations.
+**Files changed**:
+- `.github/agents/orchestrator.agent.md` — Updated orchestrator instructions to check for refactor template compliance.
+- `.agents/agents/orchestrator.md` — Synced orchestrator prompt changes.
+- `.agents/skills/orchestrator/SKILL.md` — Updated step-by-step orchestrator skill instructions.
+- `.github/agents/refactor.agent.md` — Updated refactor agent instructions to mandate using `refactor-report-template.md`.
+- `.agents/agents/refactor.md` — Synced refactor prompt changes.
+**Docs updated**:
+- `docs/templates/refactor-report-template.md` — New template file for refactoring sessions.
+- `docs/reports/refactor-report.md` — Created refactor report documenting these config updates.
+**Phase log changes**: None.
+**ADRs created or updated**: None.
+**Test run or no test run**: No test run this session.
+**Open items added**: None.
+**Notes**: Standardized future refactoring documentation by introducing a mandated refactor report template across orchestrator and refactor agent instructions.
+
