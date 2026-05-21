@@ -65,7 +65,7 @@ export async function parseCSVWithDetails(
   // Parse CSV using papaparse
   const parseResult = Papa.parse<CSVRow>(fileContent, {
     header: true,
-    skipEmptyLines: true,
+    skipEmptyLines: 'greedy',
     transformHeader: (header: string) => header.trim()
   });
 

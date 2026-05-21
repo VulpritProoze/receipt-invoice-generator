@@ -186,11 +186,11 @@ Item,1,100.00,2026-05-01`;
       });
 
       const response = await POST(request);
-      const data = await response.json();
+      const responseData = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.imported).toBe(3);
-      expect(data.skipped).toBe(0);
+      expect(responseData.imported).toBe(3);
+      expect(responseData.skipped).toBe(0);
     });
   });
 

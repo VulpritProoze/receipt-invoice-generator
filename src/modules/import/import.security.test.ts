@@ -136,8 +136,8 @@ describe('Import Security Tests', () => {
     it('should not crash on malformed CSV', async () => {
       const malformed = 'Description,Quantity,Rate,Date\n"unclosed quote';
 
-      // Should not throw, should handle gracefully
-      await expect(parseCSV(malformed)).resolves.toBeDefined();
+      // Should throw with parsing failed error
+      await expect(parseCSV(malformed)).rejects.toThrow('CSV parsing failed');
     });
 
     it('should not crash on CSV with mismatched columns', async () => {
@@ -231,11 +231,10 @@ Item,1,100.00,2026-05-01`;
       const csv = `Description,Quantity,Rate,Date
 ${longValue},1,100.00,2026-05-01`;
 
-      const items = await parseCSV(csv);
 
       // Should parse but validate against schema
       // Description max is 500 chars, so this should be rejected
-      expect(items.length).toBe(0);
+      await expect(parseCSV(csv)).rejects.toThrow('Description must not exceed 500 characters');
     });
   });
 });
