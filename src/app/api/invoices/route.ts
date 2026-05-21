@@ -3,6 +3,7 @@ import {
   createInvoice,
   listUserInvoices
 } from '@/modules/invoices/invoiceService';
+import { invoiceCreateRequestSchema } from '@/schemas';
 
 /**
  * POST /api/invoices - Create a new invoice
@@ -13,59 +14,33 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // Validate required fields
-    const requiredFields = [
-      'userID',
-      'invoiceDate',
-      'terms',
-      'dueDate',
-      'currency',
-      'billTo',
-      'billToAddressLine',
-      'billToCityAddress',
-      'billToPostalAddress',
-      'billToCountry',
-      'invoiceItems',
-      'taxRate'
-    ];
-    const missingFields = requiredFields.filter(
-      (field) =>
-        body[field] === undefined ||
-        body[field] === null ||
-        (typeof body[field] === 'string' && body[field].trim() === '')
-    );
+    // Validate request body using centralized schema
+    const result = invoiceCreateRequestSchema.safeParse(body);
 
-    if (missingFields.length > 0) {
+    if (!result.success) {
       return NextResponse.json(
         {
-          error: 'Missing required fields',
-          details: { missingFields }
+          error: 'Invalid invoice data',
+          details: result.error.flatten()
         },
         { status: 400 }
       );
     }
 
-    // Validate invoice items array
-    if (!Array.isArray(body.invoiceItems) || body.invoiceItems.length === 0) {
-      return NextResponse.json(
-        { error: 'Invoice must contain at least one item' },
-        { status: 400 }
-      );
-    }
-
-    // Create invoice (will generate invoiceID)
-    const invoice = await createInvoice(body.userID, {
-      invoiceDate: body.invoiceDate,
-      terms: body.terms,
-      dueDate: body.dueDate,
-      currency: body.currency,
-      billTo: body.billTo,
-      billToAddressLine: body.billToAddressLine,
-      billToCityAddress: body.billToCityAddress,
-      billToPostalAddress: body.billToPostalAddress,
-      billToCountry: body.billToCountry,
-      invoiceItems: body.invoiceItems,
-      taxRate: body.taxRate
+    // Create invoice with validated data (will generate invoiceID)
+    const validatedData = result.data;
+    const invoice = await createInvoice(validatedData.userID, {
+      invoiceDate: validatedData.invoiceDate,
+      terms: validatedData.terms,
+      dueDate: validatedData.dueDate,
+      currency: validatedData.currency,
+      billTo: validatedData.billTo,
+      billToAddressLine: validatedData.billToAddressLine,
+      billToCityAddress: validatedData.billToCityAddress,
+      billToPostalAddress: validatedData.billToPostalAddress,
+      billToCountry: validatedData.billToCountry,
+      invoiceItems: validatedData.invoiceItems,
+      taxRate: validatedData.taxRate
     });
 
     return NextResponse.json(invoice, { status: 201 });

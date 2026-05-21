@@ -7,6 +7,7 @@ import { getCurrentUserId } from '@/lib/auth';
 import { createReceipt as dbCreateReceipt } from '@/lib/db/receipts';
 import { generateReceiptID, generateInvoiceID } from '@/lib/idGenerator';
 import { getUser } from '@/lib/db/users';
+import { receiptCreateRequestSchema } from '@/schemas';
 
 /**
  * POST /api/receipts - Create a new receipt (from invoice or standalone)
@@ -18,13 +19,31 @@ export async function POST(req: NextRequest) {
 
     const userID = (await getCurrentUserId()) || 'demo-user-001';
 
+    // Validate request body using centralized schema
+    const result = receiptCreateRequestSchema.safeParse({
+      ...body,
+      userID // Add userID to validation payload
+    });
+
+    if (!result.success) {
+      return NextResponse.json(
+        {
+          error: 'Invalid receipt data',
+          details: result.error.flatten()
+        },
+        { status: 400 }
+      );
+    }
+
+    const validatedData = result.data;
+
     // If invoiceID provided, use service which enforces invoice existence
-    if (body.invoiceID) {
+    if (validatedData.invoiceID) {
       const receipt = await createReceipt(userID, {
-        date: body.date,
-        invoiceID: body.invoiceID,
-        invoiceItems: body.invoiceItems,
-        total: body.total
+        date: validatedData.date,
+        invoiceID: validatedData.invoiceID,
+        invoiceItems: validatedData.invoiceItems || [],
+        total: validatedData.total
       });
       return NextResponse.json(receipt, { status: 201 });
     }
@@ -37,26 +56,26 @@ export async function POST(req: NextRequest) {
 
     const receiptObj = {
       receiptID,
-      date: body.date || createdAt,
+      date: validatedData.date,
       accountBilled: user ? `${user.username} (${user.userEmail})` : 'Unknown',
       invoiceID,
-      invoiceItems: Array.isArray(body.invoiceItems)
-        ? body.invoiceItems
-        : [
-            {
-              description: body.title || 'Standalone receipt',
-              quantity: 1,
-              price: Number(body.amount) || 0
-            }
-          ],
-      total: Number(body.amount) || 0,
+      invoiceItems: validatedData.invoiceItems || [
+        {
+          itemID: 'item-001',
+          description: 'Standalone receipt',
+          quantity: 1,
+          rate: validatedData.total,
+          date: validatedData.date
+        }
+      ],
+      total: validatedData.total,
       chargedTo: user ? `${user.creditCardType} ${user.creditCardNumber}` : '—',
       userID,
       createdAt
     };
 
     // Store using DB helper (it validates via schema)
-    await dbCreateReceipt(userID, receiptObj as any);
+    await dbCreateReceipt(userID, receiptObj);
 
     return NextResponse.json(receiptObj, { status: 201 });
   } catch (error) {
@@ -85,7 +104,7 @@ export async function POST(req: NextRequest) {
 /**
  * GET /api/receipts - List all receipts for the current user
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const userID = (await getCurrentUserId()) || 'demo-user-001';
 
