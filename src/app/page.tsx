@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 const highlights = [
   'Invoice generation with multi-select billing items',
   'Receipt generation from existing invoices only',
