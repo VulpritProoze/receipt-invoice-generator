@@ -1,3 +1,5 @@
+
+
 import { mockRedis } from '@/lib/__mocks__/redis';
 import { createUser, getUser, getUserByEmail } from './users';
 import { createInvoice, getInvoice, listInvoices } from './invoices';
@@ -13,17 +15,14 @@ import { Invoice, InvoiceItem } from '@/models/invoice';
 import { Receipt } from '@/models/receipt';
 import { CompanyConfig } from '@/models/company';
 
-// Mock the redis module
-jest.mock('@/lib/redis');
-
 describe('database security tests', () => {
   beforeEach(() => {
     // Clear mock Redis store before each test
     mockRedis.clear();
   });
 
-  const user1ID = 'user-1-id';
-  const user2ID = 'user-2-id';
+  const user1ID = '550e8400-e29b-41d4-a716-446655440001';
+  const user2ID = '550e8400-e29b-41d4-a716-446655440002';
 
   const user1: User = {
     userID: user1ID,
@@ -76,7 +75,7 @@ describe('database security tests', () => {
   };
 
   const user1Receipt: Receipt = {
-    receiptID: 'CH_A3K9MXQP2T7VWRJNZ',
+    receiptID: 'CH_A3K9MXQP2T7VWRJNA',
     date: '2026-05-20',
     accountBilled: 'user1 (user1@example.com)',
     invoiceID: 'INV000000001',
@@ -88,12 +87,15 @@ describe('database security tests', () => {
   };
 
   const user2Receipt: Receipt = {
-    ...user1Receipt,
-    receiptID: 'CH_B4L0NXRQ3U8WXSKPQ',
-    invoiceID: 'INV000000002',
+    receiptID: 'CH_B3K9MXQP2T7VWRJNB',
+    date: '2026-05-20',
     accountBilled: 'user2 (user2@example.com)',
+    invoiceID: 'INV000000002',
+    invoiceItems: [validInvoiceItem],
+    total: 224.0,
     chargedTo: 'Mastercard **** **** **** 2222',
-    userID: user2ID
+    userID: user2ID,
+    createdAt: '2026-05-20'
   };
 
   const user1CompanyConfig: CompanyConfig = {
@@ -269,7 +271,7 @@ describe('database security tests', () => {
   });
 
   describe('key injection attack prevention', () => {
-    it('should safely handle userID with colon characters', async () => {
+    it('should safely handle userID with colon characters by rejecting them', async () => {
       const maliciousUserID = 'user:malicious:attempt';
 
       const maliciousUser: User = {
@@ -277,11 +279,7 @@ describe('database security tests', () => {
         userID: maliciousUserID
       };
 
-      await createUser(maliciousUser);
-
-      // Should store with the literal userID including colons
-      const retrieved = await getUser(maliciousUserID);
-      expect(retrieved?.userID).toBe(maliciousUserID);
+      await expect(createUser(maliciousUser)).rejects.toThrow();
 
       // Should not interfere with other users
       await createUser(user1);

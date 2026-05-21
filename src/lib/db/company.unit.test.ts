@@ -1,3 +1,5 @@
+
+
 import { mockRedis } from '@/lib/__mocks__/redis';
 import {
   setCompanyConfig,
@@ -5,9 +7,6 @@ import {
   updateCompanyConfig
 } from './company';
 import { CompanyConfig } from '@/models/company';
-
-// Mock the redis module
-jest.mock('@/lib/redis');
 
 describe('company database operations', () => {
   beforeEach(() => {

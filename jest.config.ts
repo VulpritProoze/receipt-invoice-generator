@@ -6,6 +6,7 @@ const config: Config = {
   coverageReporters: ['text', 'lcov'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   moduleNameMapper: {
+    '^@/lib/redis$': '<rootDir>/src/lib/__mocks__/redis.ts',
     '^@/(.*)$': '<rootDir>/src/$1'
   },
   restoreMocks: true,
@@ -13,6 +14,7 @@ const config: Config = {
   testEnvironment: 'jsdom',
   testMatch: ['<rootDir>/src/**/*.test.ts', '<rootDir>/src/**/*.test.tsx'],
   testPathIgnorePatterns: ['/node_modules/', '/.next/'],
+  transformIgnorePatterns: ['/node_modules/(?!uuid)/'],
   transform: {
     '^.+\.(t|j)sx?$': [
       '@swc/jest',

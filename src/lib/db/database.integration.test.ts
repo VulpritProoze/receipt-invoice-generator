@@ -1,3 +1,5 @@
+
+
 import { mockRedis } from '@/lib/__mocks__/redis';
 import { createUser, getUser } from './users';
 import {
@@ -19,9 +21,6 @@ import { User } from '@/models/user';
 import { Invoice, InvoiceItem } from '@/models/invoice';
 import { Receipt } from '@/models/receipt';
 import { CompanyConfig } from '@/models/company';
-
-// Mock the redis module
-jest.mock('@/lib/redis');
 
 describe('database integration tests', () => {
   beforeEach(() => {
@@ -187,7 +186,7 @@ describe('database integration tests', () => {
   });
 
   describe('data isolation between users', () => {
-    const user2ID = 'user-2-id';
+    const user2ID = '550e8400-e29b-41d4-a716-446655440001';
 
     const user2: User = {
       ...validUser,
