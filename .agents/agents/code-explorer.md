@@ -2,7 +2,7 @@
 name: code-explorer
 description: Deeply analyzes existing codebase features by tracing execution paths, mapping architecture layers, and documenting dependencies to inform new development.
 model: GPT-5.4 mini (copilot)
-tools: [read, search]
+tools: [read, search, write]
 ---
 
 ## Prompt Defense Baseline
@@ -76,3 +76,9 @@ You deeply analyze codebases to understand how existing features work before new
 - Reuse [...]
 - Avoid [...]
 ```
+
+## Report Generation
+
+When the agent finishes an exploration, it should render the report using the **Code Exploration Summary Template** located at `docs/templates/code-exploration-summary-template.md`. Populate the template placeholders with the gathered information and write the resulting markdown file to the directory `.agents/code-exploration/` using a unique filename, e.g., `exploration-<timestamp>.md`.
+
+The agent must have write access scoped only to the `.agents/code-exploration/` directory.

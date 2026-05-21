@@ -1,7 +1,7 @@
 ---
 name: generate-adr
 user-invocable: true
-description: 'Use when making a significant architectural, dependency, or design decision. Check for an existing ADR, assign the next DEC-NNN, write the ADR before the code, handle superseding decisions, add code references, and log the decision in AGENTS.md.'
+description: 'Use when making a significant architectural, dependency, or design decision. Check for an existing ADR, assign the next DEC-NNN, write the ADR before the code, handle superseding decisions, add code references, and log the decision in the current session log file.'
 ---
 
 # Generate ADR
@@ -58,7 +58,7 @@ Do not use this skill for trivial implementation details or choices that any com
    - At the first code point where the decision becomes real, add a short inline comment that points to the ADR.
    - Keep the comment brief; the ADR carries the reasoning.
 
-9. Log the decision in AGENTS.md.
+9. Log the decision in the current session log file.
    - Record that the ADR was created or superseded in the session log.
    - If the ADR is only proposed, add the open question or blocker that needs resolution.
 
@@ -79,7 +79,7 @@ This skill is complete only when all of the following are true:
 - Every section contains real content with no template placeholders left behind.
 - Any superseded ADR has been updated correctly.
 - The decision is referenced in code with a brief inline comment, if code exists yet.
-- The session log in `AGENTS.md` mentions the ADR.
+- The session log file mentions the ADR.
 
 ## Do Nots
 

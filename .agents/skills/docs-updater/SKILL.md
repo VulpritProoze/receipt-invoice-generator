@@ -1,7 +1,7 @@
 ---
 name: docs-updater
 user-invocable: false
-description: 'Run at session end to evaluate the final diff, update any docs that drifted from the code or configuration, and append a complete session log entry to AGENTS.md.'
+description: 'Run at session end to evaluate the final diff, update any docs that drifted from the code or configuration, and save a session log to the unresolved session logs directory.'
 ---
 
 # Docs Updater
@@ -10,7 +10,7 @@ Run this skill at the close of every Copilot agent session. Its job is to close 
 
 ## Purpose
 
-Documentation drifts when source files change, packages are added, env vars appear, or decisions are made without their docs being updated. This skill evaluates the final session state, updates the necessary docs, and records the outcome in `AGENTS.md` so the next agent sees an accurate project history.
+Documentation drifts when source files change, packages are added, env vars appear, or decisions are made without their docs being updated. This skill evaluates the final session state, updates the necessary docs, and saves the outcome as a session log file under `docs/reports/session-logs/unresolved/SES-[timestamp].md` so it can be resolved later.
 
 ## When to Invoke
 
@@ -23,7 +23,7 @@ Before deciding what to update, determine what changed this session.
 
 - Check `git status`.
 - Check `git diff --name-only HEAD`.
-- If the diff cannot be established, do not guess. Record the uncertainty in `AGENTS.md` as an open item: `Session diff unavailable — manual documentation review recommended before marking this session complete.`
+- If the diff cannot be established, do not guess. Record the uncertainty in the session log file as an open item: `Session diff unavailable — manual documentation review recommended before marking this session complete.`
 
 ## Decision Flow
 
@@ -36,7 +36,7 @@ Work through the seven questions in order. Answer yes or no from the session dif
 
 2. Package changes in `package.json`
    - If packages were added, removed, or changed, check `docs/decisions/` for a matching ADR.
-   - If no ADR exists, use `generate-adr` to create one in `proposed` status and add a review item to `AGENTS.md`.
+    - If no ADR exists, use `generate-adr` to create one in `proposed` status and add a review item to the session log file open items.
    - If an existing ADR is still current but version-sensitive, update the research findings and bump the ADR version.
 
 3. Model and schema changes
@@ -49,13 +49,13 @@ Work through the seven questions in order. Answer yes or no from the session dif
 
 5. Test activity
    - If tests ran or test files changed, confirm a report exists in `docs/reports/test-reports/` when a test run occurred.
-   - If a test run occurred without a report, treat that as a blocker and note it in `AGENTS.md`.
-   - If test files changed, update `docs/architecture/testing-strategy.md` when the test setup or coverage strategy changed.
+    - If a test run occurred without a report, treat that as a blocker and note it in the session log file.
+    - If test files changed, update `docs/architecture/testing-strategy.md` when the test setup or coverage strategy changed.
 
 6. Phase log changes
-   - If a phase was completed or moved in `AGENTS.md`, verify the underlying conditions actually hold in the workspace.
-   - If a phase is not truly complete, move it back to in progress and list the remaining conditions.
-   - Append a hand-off note when the session closes with work for the next agent.
+    - If a phase was completed or moved, verify the underlying conditions actually hold in the workspace (and note the phase state change in the session log file).
+    - If a phase is not truly complete, note it in the session log file to be resolved/corrected in the phase log later.
+    - Add a hand-off note to the session log file when the session closes with work for the next agent.
 
 7. Deployment, setup, or onboarding changes
    - If setup, onboarding, deployment, or import expectations changed, update the relevant getting-started or architecture docs.
@@ -78,7 +78,7 @@ When updating docs:
 
 ## Session Log Entry
 
-Append a new entry to `AGENTS.md` under `## Session Log`. Do not edit or delete prior entries.
+Save a new session log entry as a file under `docs/reports/session-logs/unresolved/SES-[timestamp].md`. Do not edit or delete prior logs.
 
 The entry should include:
 
@@ -103,7 +103,7 @@ This skill is complete only when all of the following are true:
 - The final session diff was evaluated, or the inability to determine it was recorded as an open item.
 - Every yes answer resulted in a concrete doc update or blocker note.
 - Any required ADRs were created or updated.
-- The session log entry was appended to `AGENTS.md`.
+- The session log file was saved to `docs/reports/session-logs/unresolved/SES-[timestamp].md`.
 - All docs changed this session have their version, updated date, and changelog updated.
 - No dependency added this session is missing an ADR.
 
@@ -113,7 +113,7 @@ This skill is complete only when all of the following are true:
 - Do not assume the diff is empty if it cannot be checked.
 - Do not update docs speculatively.
 - Do not pad the session log with empty statements.
-- Do not edit or delete previous session log entries.
+- Do not edit or delete previous session log files.
 - Do not mark the session clean if a test run happened without a report.
 - Do not treat future plans as completed work.
 

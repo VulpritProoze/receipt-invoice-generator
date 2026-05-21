@@ -48,7 +48,7 @@ Real values go only in `.env.local`, which is never committed.
 1. Remove it immediately from the file.
 2. Treat the credential as compromised — tell the human to rotate it.
 3. Replace with the correct env var pattern.
-4. Document the incident in the current session log entry in `AGENTS.md`.
+4. Document the incident in the current session log file.
 
 The sequence matters. Remove first. Then everything else.
 

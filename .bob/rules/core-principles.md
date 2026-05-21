@@ -113,7 +113,7 @@ No credential, token, URL with embedded auth, connection string, or environment-
 1. Remove it immediately.
 2. Treat the exposed credential as compromised — surface this to the human for rotation.
 3. Add the correct env var pattern.
-4. Document the incident in the session log in `AGENTS.md`.
+4. Document the incident in the current session log file.
 
 The sequence matters. Remove first. Then do everything else.
 
@@ -143,4 +143,4 @@ These principles are not enforced by trust. They are enforced mechanically:
 - **`/run-tests` skill** → schema tests, security tests, and linting bookends catch runtime violations of these principles.
 - **Session-end hook** → runs `docs-updater`, which checks for undocumented decisions, missing ADRs, and hardcoded env vars in new code.
 
-**If you knowingly violate a principle:** document the violation, the reason, and the remediation plan in the current session log entry in `AGENTS.md`. A silent violation is not an acceptable path forward under any circumstance.
+**If you knowingly violate a principle:** document the violation, the reason, and the remediation plan in the current session log file. A silent violation is not an acceptable path forward under any circumstance.

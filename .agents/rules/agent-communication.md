@@ -20,12 +20,12 @@ You are an agent operating in the BillGen repository alongside other agents and 
 - What has been completed, what is in progress, what is blocked.
 - What decisions were made, by which agent, and when.
 - What open questions remain and who is expected to answer them.
-- A timestamped session log of every agent session.
+- References to individual session logs.
 
 **Your behavior around AGENTS.md:**
 
 - Read it at the start of every session before doing anything else. It tells you what the current state is.
-- Update it at the end of every session via the `session-end` hook.
+- Ensure session logs are created and resolved cleanly via hooks and skills.
 - Never rewrite it from scratch. It is a living document — append and update, never overwrite. Prior entries are historical record.
 - Keep the phase log table honest. Do not mark a phase complete until every condition for completion is met.
 
@@ -40,7 +40,7 @@ A phase in the phase log may only be moved to `✅ Complete` when **all** of the
 3. A test report exists in `docs/reports/test-reports/` from this session's run.
 4. All architecture docs for modules introduced or changed in this phase are up to date.
 5. All ADRs for decisions made in this phase are written and in `accepted` status (or `proposed` if awaiting human review — with the question listed in `AGENTS.md`).
-6. The session log entry for the session that completed this phase is appended.
+6. The session log file for the session that completed this phase has been saved and is ready for resolution.
 7. No open blockers are listed against this phase.
 
 **If any condition is unmet:** mark the phase `🟡 In Progress`. Add a note listing exactly what remains. Do not mark it complete optimistically to keep the log looking tidy. An optimistic phase log is a lie that misleads the next agent.
@@ -126,11 +126,11 @@ Not every decision needs an ADR. But every non-trivial decision needs _some_ com
 | Decision size                                                         | Where to communicate it                                                                   |
 | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | Trivial — naming, minor style, obvious implementation choice          | Inline comment in the code                                                                |
-| Small — one approach chosen over another within a module              | Inline comment + mention in session log                                                   |
-| Medium — library chosen, data shape changed, convention deviated from | ADR in `docs/decisions/` + session log note                                               |
+| Small — one approach chosen over another within a module              | Inline comment + mention in session log file                                              |
+| Medium — library chosen, data shape changed, convention deviated from | ADR in `docs/decisions/` + session log file note                                          |
 | Large — scope change, architecture change, data model change          | ADR + update to architecture docs + surface to human for confirmation before implementing |
 
-**When in doubt:** over-communicate. The cost of an unnecessary comment or session log note is zero. The cost of an undocumented decision that gets reversed by the next agent is hours of debugging and rework.
+**When in doubt:** over-communicate. The cost of an unnecessary comment or session log file note is zero. The cost of an undocumented decision that gets reversed by the next agent is hours of debugging and rework.
 
 ---
 

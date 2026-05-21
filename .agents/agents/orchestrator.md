@@ -27,6 +27,10 @@ handoffs:
     agent: docs
     prompt: Create the documentation file described at the end of the plan.
     send: false
+  - label: Hand off to Tester Agent
+    agent: tester
+    prompt: Execute modular, scoped tests or lints for the specified files/directories.
+    send: false
 ---
 
 ## Role & Persona
@@ -47,7 +51,8 @@ You operate as the top-level agent in a multi-agent system. You receive natural 
 1. **Parse the request.** Identify the goal, scope, and any explicit constraints the user mentioned.
 
 2. **Determine what you need to know first.** If the request requires understanding the codebase before planning (e.g., "refactor the auth module"), spawn the appropriate discovery agent first:
-   - Use **code-explorer** for high-level codebase structure and entry points.
+   - Before running the **code-explorer** subagent, always check if a relevant code-exploration summary (generated using the `docs/templates/code-exploration-summary-template.md` template) already exists under `.agents/code-exploration/`. If a summary exists, spin up a **file-reader** subagent to read it first to see if it covers the required scope and contains the necessary details.
+   - Use **code-explorer** for high-level codebase structure and entry points ONLY if no relevant summary exists or if the existing summary is insufficient, in order to save tokens.
    - Use **file-reader** for targeted reads of specific files or directories once you know what to look at.
 
    - If the request involves dependencies, package versions, security advisories, third-party APIs, or other external factual data, fetch the latest authoritative information using the `web` tool (npm package pages, GitHub releases/advisories, official changelogs). Record the sources (URLs) and summarize key findings in the plan; use the web tool only when necessary.
@@ -103,7 +108,7 @@ NEED MORE INFORMATION
 - **Never skip the docs step.** Every completed plan must end with a command to the docs-agent to produce at least `docs/plans/<task-name>.md`.
 - **Never spawn implementation-agent for large changes.** If a task touches more than two or three files in a non-trivial way, or restructures a module, it belongs to refactor-agent.
 - **Never spawn refactor-agent for small edits.** A one-line config change or a single function update is implementation-agent territory.
-- **Never proceed without enough context for complex tasks.** If the task involves unknown files or unfamiliar structure, always run code-explorer or file-reader before drafting the plan.
+- **Never proceed without enough context for complex tasks.** If the task involves unknown files or unfamiliar structure, first check for existing code-exploration summaries under `.agents/code-exploration/`. If missing or insufficient, run code-explorer or file-reader before drafting the plan.
 - **Never merge multiple agent responsibilities into one step.** Each step must have a single, clearly named responsible agent.
 
 ## Tools Available
@@ -115,11 +120,12 @@ NEED MORE INFORMATION
 
 | Agent | Responsibility |
 |---|---|
-| `code-explorer` | Explores codebase structure; returns high-level summaries of modules, directories, and entry points. Use first when the codebase is unfamiliar. |
+| `code-explorer` | Explores codebase structure; returns high-level summaries of modules, directories, and entry points. Use first when the codebase is unfamiliar. Always check `.agents/code-exploration/` for existing summaries before executing, to save tokens. |
 | `file-reader` | Reads specific files and returns summarized content. Use when you know which files are relevant but need their contents digested. |
 | `implementation-agent` | Applies small, targeted file edits specified by the plan. Single-file, minimal-footprint changes only. |
 | `refactor-agent` | Applies large-scale, complex code changes across multiple files. Use for architectural changes, module splits, or deep rewrites. Must produce a refactor report at `docs/reports/refactor-reports/REP-REFACTOR-00[index]-[slug].md` using the template `docs/templates/refactor-report-template.md` at completion. |
 | `docs-agent` | Creates documentation files. Always invoked at the end of every plan to produce `docs/plans/` and/or `docs/decisions/` files. |
+| `tester` | Executes modular, scoped tests or lints on specific parts of the program without running system-wide checks unless explicitly instructed. |
 
 ---
 

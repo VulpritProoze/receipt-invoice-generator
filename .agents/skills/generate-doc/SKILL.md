@@ -22,7 +22,7 @@ Do not use this skill for root `AGENTS.md`, files outside `docs/`, or the templa
 1. Identify the document type and subfolder.
    - Match the file to the correct docs subfolder.
    - Use the subfolder to select the right template and `doc_id` prefix.
-   - If the document does not fit cleanly, surface the ambiguity in `AGENTS.md` instead of guessing.
+   - If the document does not fit cleanly, surface the ambiguity in the current session log file instead of guessing.
 
 2. Assign a unique `doc_id`.
    - Scan the target area and the rest of `docs/` for existing IDs.
@@ -41,7 +41,7 @@ Do not use this skill for root `AGENTS.md`, files outside `docs/`, or the templa
 5. Fill the body with real content.
    - Write for a reader with no context.
    - Do not leave placeholder text in a finished document.
-   - If a section cannot be completed yet, write `[Pending: reason]` and record the gap in `AGENTS.md`.
+   - If a section cannot be completed yet, write `[Pending: reason]` and record the gap in the current session log file.
 
 6. Apply the content rules for the document type.
    - Architecture docs: explain purpose, responsibilities, interfaces, data flow, key decisions, and known limitations.
@@ -66,7 +66,7 @@ Do not use this skill for root `AGENTS.md`, files outside `docs/`, or the templa
    - New architecture docs should be linked from `docs/architecture/system-overview.md`.
    - New ADRs should be linked from the related architecture doc.
    - New getting-started docs should be linked from `docs/getting-started/local-setup.md`.
-   - All newly created docs should be mentioned in the current session log in `AGENTS.md`.
+   - All newly created docs should be mentioned in the current session log file.
 
 ## Document Quality Rules
 
@@ -91,8 +91,8 @@ This skill is complete only when all of the following are true:
 - The body contains real content with no placeholder text.
 - The status matches the document's actual state.
 - Cross-links are accurate and any missing targets are marked `[forthcoming: DOC-ID]`.
-- The doc is linked from an appropriate place or from `AGENTS.md`.
-- The session log mentions the new or updated doc.
+- The doc is linked from an appropriate place or from the session log file.
+- The session log file mentions the new or updated doc.
 
 ## Do Nots
 

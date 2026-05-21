@@ -132,30 +132,30 @@ When an ADR is superseded: update its `status` to `superseded`, add `superseded_
 
 ---
 
-## Rule 6: The Session Log in AGENTS.md Is Append-Only and Mandatory
+## Rule 6: Session Logs are Saved to Individual Files and Resolved Asynchronously
 
-At the close of every session (triggered by the `session-end` hook via the `docs-updater` skill), a session log entry is appended to `AGENTS.md` under `## Session Log`.
+At the close of every session (triggered by the `session-end` hook via the `docs-updater` skill), a session log entry is saved as a new file under `docs/reports/session-logs/unresolved/SES-[timestamp].md`.
 
 **Format:**
 
 ```markdown
-### Session: [ISO 8601 timestamp]
+# Session: [ISO 8601 timestamp]
 
 **Agent**: [identifier]
 **Session focus**: [one sentence]
 **Files changed**:
 
 - `[path]` — [brief reason]
-  **Docs updated**:
+**Docs updated**:
 - `[path]` — [what changed]
 - (or "None — [reason]")
-  **Phase log changes**: [list, or "None"]
-  **ADRs created or updated**: [list, or "None"]
-  **Open items added**: [list, or "None"]
-  **Notes**: [anything the next agent needs to know]
+**Phase log changes**: [list, or "None"]
+**ADRs created or updated**: [list, or "None"]
+**Open items added**: [list, or "None"]
+**Notes**: [anything the next agent needs to know]
 ```
 
-The session log is **append-only**. Prior entries are never edited or deleted. They are the project's runtime history — the record of what happened, in what order, and why.
+These unresolved session log files are part of the project's runtime history. The `session-resolver` skill is run to merge/resolve these logs into the primary documentation (including documents in `docs/architecture/` and `docs/getting-started/`), rules, and core `AGENTS.md` instructions, after which the log file is moved to `docs/reports/session-logs/resolved/`.
 
 ---
 
@@ -181,5 +181,5 @@ Every doc you write must meet these standards:
 
 - The `session-end` hook triggers `docs-updater`, which evaluates seven specific questions about whether documentation needs updating based on what changed this session.
 - `docs-updater` will flag any doc file missing its metadata header and refuse to mark the session clean until it is added.
-- `docs-updater` will auto-draft an ADR (marked `proposed`) for any dependency added this session with no corresponding ADR, then add it to `AGENTS.md` open items for review.
+- `docs-updater` will auto-draft an ADR (marked `proposed`) for any dependency added this session with no corresponding ADR, then add it to the session log file open items for review.
 - A phase cannot be marked `✅ Complete` in the phase log unless all documentation conditions are met (see the `agent-communication` rule for the full phase completion checklist).

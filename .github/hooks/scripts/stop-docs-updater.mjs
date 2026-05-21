@@ -9,7 +9,7 @@ console.log(
     continue: true,
     systemMessage: stopHookActive
       ? undefined
-      : 'Session ending. Consider running the docs-updater skill to keep AGENTS.md current with your changes.',
+      : 'Session ending. Consider running the docs-updater skill to save a session log to the unresolved session logs directory.',
     hookSpecificOutput: {
       hookEventName: 'Stop',
       decision: 'allow-with-advisory',
@@ -18,7 +18,7 @@ console.log(
         : 'Reminder: Run /docs-updater to document session changes',
       additionalContext: stopHookActive
         ? undefined
-        : 'The docs-updater skill helps maintain AGENTS.md and generates session reports. Consider running it before ending.'
+        : 'The docs-updater skill helps generate session reports and saves them under docs/reports/session-logs/unresolved/. Consider running it before ending.'
     }
   })
 );

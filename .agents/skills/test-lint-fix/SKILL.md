@@ -1,11 +1,14 @@
 ---
-name: test-lint-fix-iterate
-description: Orchestrator-led loop that runs verification (lints and tests) using the tester subagent, and delegates fixes to small-implementations or refactor agents, iterating until the scoped modules are clean or capped at 5 cycles.
+name: test-lint-fix
+user-invocable: true
+description: 'Runs modular verification (lints and tests) using the tester subagent, delegates fixes to small-implementations or refactor agents, and creates a test report under docs/reports/test-reports/ according to the test skill (without looping).'
 ---
 
-# Test Lint Fix Iterate Skill
+# Test Lint Fix Skill
 
-You are acting as the Orchestrator. Your job is to orchestrate a controlled loop of: modular linting -> formatting -> modular testing -> repairing code -> verification. You think, plan, and delegate — never writing or editing code, and never running the verification commands directly. You delegate verification to the `tester` agent, and delegate fixes to either `small-implementations` or `refactor` agents.
+You are acting as the Orchestrator. Your job is to orchestrate a single-pass verification and repair workflow: modular linting -> formatting -> modular testing -> repairing code -> final verification -> test report generation. You think, plan, and delegate — never writing or editing code, and never running the verification commands directly. You delegate verification to the `tester` agent, and delegate fixes to either `small-implementations` or `refactor` agents.
+
+Unlike the `test-lint-fix-iterate` skill, this skill does not loop repeatedly. It runs the verification pass once, attempts a single round of repairs for any failures, runs verification again to verify the fix, and then generates a test report.
 
 ## Step 1: Define Subagents
 Before planning or delegating, you must ensure the specialized subagents are defined for this conversation.
@@ -33,9 +36,7 @@ Before planning or delegating, you must ensure the specialized subagents are def
    - If you need a broader overview, check if a relevant code-exploration summary (generated using the `docs/templates/code-exploration-summary-template.md` template) already exists under `.agents/code-exploration/`. Use **file-reader** to read it first to see if it covers the required scope and contains the necessary details.
    - Spawn the **code-explorer** subagent only if no relevant summary exists or if the existing summary is insufficient, in order to save tokens.
 
-## Step 3: Run the Iterate Loop
-For up to a maximum of 5 cycles:
-
+## Step 3: Run Verification and Repair
 1. **Lint Verification**:
    - Spawn the `tester` subagent to run ESLint on the scoped directory or file.
    - Example instruction to `tester`: `Run lint on src/lib/db/sqlite/`
@@ -47,35 +48,33 @@ For up to a maximum of 5 cycles:
 3. **Test Verification**:
    - Spawn the `tester` subagent to run Jest tests targeting the specific module.
    - Example instruction to `tester`: `Run tests for sqlite/company` or `npx jest src/lib/db/sqlite/company.unit.test.ts`.
-   - If tests pass and lint is clean, verification is complete.
 
-4. **Code Fixes**:
-   - If there are test/lint failures, analyze the failure report from `tester`.
+4. **Code Fixes (Single Pass)**:
+   - If there are test or lint failures, analyze the failure report from `tester`.
    - Use **file-reader** to read the files that failed to pinpoint the issues if the logs do not provide enough details.
    - Identify the smallest root cause.
    - Delegate the fix to:
      - `small-implementations`: for simple, single-file edits.
      - `refactor`: for complex, architectural, or multi-file changes.
-   - Do not make the edits yourself.
+     - Do not make the edits yourself.
 
-5. **Cycle Cap**:
-   - If the same failure repeats twice, or you reach 5 cycles, stop and report the blocker.
+5. **Verify Fix**:
+   - Once the fix is applied, spawn the `tester` subagent one last time to run the scoped tests and lints to check if the fixes resolved the issues.
 
 ## Step 4: Generate Test Report
 1. Create or update the test report under `docs/reports/test-reports/` using the template `docs/templates/test-report-template.md` (according to the `test` skill workflow).
 2. Assign the next sequential `REP-TEST-NNN` identifier by looking at existing files in `docs/reports/test-reports/`.
-3. Fill in run metadata, summary, failed tests (if any were encountered during the cycles, including their root causes and resolutions), coverage summary, and notes.
+3. Fill in run metadata, summary, failed tests (if any were encountered, including their root causes and resolutions), coverage summary, and notes.
 
 ## Step 5: Finalize and Commit
-1. Once the scoped tests and lints are green and the test report is written, verify the final report is clean.
+1. Verify the generated test report is complete and matches the project template.
 2. Invoke `git-committer-atomic` skill to stage files and create clean, atomic commits for the resolved fixes and the test report.
-
 
 ## Subagent Roster
 - **code-explorer**: Explores codebase structure; returns high-level summaries of modules, directories, and entry points. Check `.agents/code-exploration/` for existing summaries first.
 - **file-reader**: Reads specific files and returns summarized content. Use when you know which files are relevant but need their contents digested.
 - **tester**: Executes modular, scoped tests or lints on specific parts of the program without running system-wide checks. Do not delegate code edits to this agent.
-- **small-implementations**: Applies small, targeted file edits specified by the plan. Single-file, minimal-footprint changes only.
+- **small-implementations**: Applies targeted file edits specified by the plan. Single-file, minimal-footprint changes only.
 - **refactor**: Applies large-scale, complex code changes across multiple files.
 
 ## Guardrails
