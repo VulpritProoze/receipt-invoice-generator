@@ -2,6 +2,10 @@ import { redirect } from 'next/navigation';
 import OnboardingForm from './OnboardingForm';
 import { checkOnboardingStatus } from '@/onboarding/onboardingService';
 
+// Force dynamic rendering - this page requires runtime data from Redis
+// Cannot be statically generated at build time
+export const dynamic = 'force-dynamic';
+
 /**
  * Onboarding page - Server Component
  * Checks if user has already completed onboarding and redirects if so.
