@@ -10,6 +10,13 @@
     "typecheck": "tsc --noEmit",
     "test": "jest"
   },
+  "overrides": {
+    "eslint-plugin-import": { "eslint": "$eslint" },
+    "eslint-plugin-jsx-a11y": { "eslint": "$eslint" },
+    "eslint-plugin-react": { "eslint": "$eslint" },
+    "eslint-config-next": { "eslint": "$eslint" },
+    "postcss": "$postcss"
+  },
   "dependencies": {
     "@react-pdf/renderer": "4.5.1",
     "@types/uuid": "^10.0.0",
@@ -21,7 +28,7 @@
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "uuid": "^14.0.0",
-    "xlsx": "0.18.5",
+    "xlsx-js-style": "^1.2.0",
     "zod": "4.4.3"
   },
   "devDependencies": {
