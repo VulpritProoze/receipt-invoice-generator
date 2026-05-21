@@ -3,89 +3,78 @@ import {
   createReceipt,
   listUserReceipts
 } from '@/modules/receipts/receiptService';
+import { getCurrentUserId } from '@/lib/auth';
+import { createReceipt as dbCreateReceipt } from '@/lib/db/receipts';
+import { generateReceiptID, generateInvoiceID } from '@/lib/idGenerator';
+import { getUser } from '@/lib/db/users';
 
 /**
- * POST /api/receipts - Create a new receipt from an invoice
- * Request body: Receipt data without receiptID (will be generated)
- * Response: 201 with created receipt, or 400/500 on error
+ * POST /api/receipts - Create a new receipt (from invoice or standalone)
+ * Uses current user from auth when available, falls back to demo-user-001.
  */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // Validate required fields
-    const requiredFields = [
-      'userID',
-      'date',
-      'invoiceID',
-      'invoiceItems',
-      'total'
-    ];
-    const missingFields = requiredFields.filter(
-      (field) =>
-        body[field] === undefined ||
-        body[field] === null ||
-        (typeof body[field] === 'string' && body[field].trim() === '')
-    );
+    const userID = (await getCurrentUserId()) || 'demo-user-001';
 
-    if (missingFields.length > 0) {
-      return NextResponse.json(
-        {
-          error: 'Missing required fields',
-          details: { missingFields }
-        },
-        { status: 400 }
-      );
+    // If invoiceID provided, use service which enforces invoice existence
+    if (body.invoiceID) {
+      const receipt = await createReceipt(userID, {
+        date: body.date,
+        invoiceID: body.invoiceID,
+        invoiceItems: body.invoiceItems,
+        total: body.total
+      });
+      return NextResponse.json(receipt, { status: 201 });
     }
 
-    // Validate invoice items array
-    if (!Array.isArray(body.invoiceItems) || body.invoiceItems.length === 0) {
-      return NextResponse.json(
-        { error: 'Receipt must contain at least one item' },
-        { status: 400 }
-      );
-    }
+    // Standalone receipt - build minimal receipt object and store directly
+    const user = await getUser(userID);
+    const receiptID = generateReceiptID();
+    const createdAt = new Date().toISOString().split('T')[0];
+    const invoiceID = generateInvoiceID(1);
 
-    // Create receipt (will generate receiptID and validate invoice exists)
-    const receipt = await createReceipt(body.userID, {
-      date: body.date,
-      invoiceID: body.invoiceID,
-      invoiceItems: body.invoiceItems,
-      total: body.total
-    });
+    const receiptObj = {
+      receiptID,
+      date: body.date || createdAt,
+      accountBilled: user ? `${user.username} (${user.userEmail})` : 'Unknown',
+      invoiceID,
+      invoiceItems: Array.isArray(body.invoiceItems)
+        ? body.invoiceItems
+        : [
+            {
+              description: body.title || 'Standalone receipt',
+              quantity: 1,
+              price: Number(body.amount) || 0
+            }
+          ],
+      total: Number(body.amount) || 0,
+      chargedTo: user ? `${user.creditCardType} ${user.creditCardNumber}` : '—',
+      userID,
+      createdAt
+    };
 
-    return NextResponse.json(receipt, { status: 201 });
+    // Store using DB helper (it validates via schema)
+    await dbCreateReceipt(userID, receiptObj as any);
+
+    return NextResponse.json(receiptObj, { status: 201 });
   } catch (error) {
-    // Log error server-side with context
     console.error('Error creating receipt:', error);
 
-    // Check for specific error types
     if (error instanceof Error) {
       if (error.message === 'Invoice not found') {
         return NextResponse.json({ error: error.message }, { status: 404 });
       }
 
-      if (error.message === 'Receipt already exists for this invoice') {
-        return NextResponse.json({ error: error.message }, { status: 400 });
-      }
-
-      if (error.message === 'User not found') {
-        return NextResponse.json({ error: error.message }, { status: 404 });
-      }
-
-      // Zod validation errors
       if (error.name === 'ZodError') {
         return NextResponse.json(
-          {
-            error: 'Invalid receipt data',
-            details: error.message
-          },
+          { error: 'Invalid receipt data', details: error.message },
           { status: 400 }
         );
       }
     }
 
-    // Generic error response - don't expose internal details
     return NextResponse.json(
       { error: 'Failed to create receipt' },
       { status: 500 }
@@ -94,30 +83,17 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * GET /api/receipts?userID=xxx - List all receipts for a user
- * Query params: userID (required)
- * Response: 200 with array of receipts, or 400/500 on error
+ * GET /api/receipts - List all receipts for the current user
  */
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const userID = searchParams.get('userID');
-
-    if (!userID) {
-      return NextResponse.json(
-        { error: 'userID query parameter is required' },
-        { status: 400 }
-      );
-    }
+    const userID = (await getCurrentUserId()) || 'demo-user-001';
 
     const receipts = await listUserReceipts(userID);
 
     return NextResponse.json({ receipts }, { status: 200 });
   } catch (error) {
-    // Log error server-side with context
     console.error('Error listing receipts:', error);
-
-    // Generic error response - don't expose internal details
     return NextResponse.json(
       { error: 'Failed to list receipts' },
       { status: 500 }
