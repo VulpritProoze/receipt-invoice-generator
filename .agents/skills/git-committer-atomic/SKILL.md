@@ -259,7 +259,7 @@ The report should include:
 - Any orphaned files and how they were resolved.
 - Any validation notes, blockers, or follow-up items.
 
-Use a new `REP-COMMIT-NNN` identifier and a descriptive filename such as `REP-COMMIT-001-atomic-commit-report.md`. Keep the report aligned with the final repository state; if the worktree is not clean, state the remaining files explicitly so nothing is hidden.
+Use a new `REP-COMMIT-NNN` identifier and a descriptive filename such as `REP-COMMIT-001-{commit-slug}.md`. Keep the report aligned with the final repository state; if the worktree is not clean, state the remaining files explicitly so nothing is hidden.
 
 ---
 
