@@ -8,3 +8,10 @@ dist
 npm-debug.log*
 *.tsbuildinfo
 # .bob/notes/
+
+# SQLite database files
+.dev/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
