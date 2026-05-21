@@ -55,7 +55,7 @@ export async function getReceipt(
   }
 
   try {
-    const invoiceItems = JSON.parse(row.invoiceItems);
+    const invoiceItems = JSON.parse(row.invoiceItems as string);
     const receiptObj = {
       ...row,
       invoiceItems
@@ -88,7 +88,7 @@ export async function getReceiptByInvoiceID(
   }
 
   try {
-    const invoiceItems = JSON.parse(row.invoiceItems);
+    const invoiceItems = JSON.parse(row.invoiceItems as string);
     const receiptObj = {
       ...row,
       invoiceItems
@@ -116,7 +116,7 @@ export async function listReceipts(userID: string): Promise<Receipt[]> {
   const receipts: Receipt[] = [];
   for (const row of rows) {
     try {
-      const invoiceItems = JSON.parse(row.invoiceItems);
+      const invoiceItems = JSON.parse(row.invoiceItems as string);
       const receiptObj = {
         ...row,
         invoiceItems

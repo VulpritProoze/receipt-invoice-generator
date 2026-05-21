@@ -68,7 +68,7 @@ export async function getInvoice(
   }
 
   try {
-    const invoiceItems = JSON.parse(row.invoiceItems);
+    const invoiceItems = JSON.parse(row.invoiceItems as string);
     const invoiceObj = {
       ...row,
       invoiceItems
@@ -153,7 +153,7 @@ export async function listInvoices(userID: string): Promise<Invoice[]> {
   const invoices: Invoice[] = [];
   for (const row of rows) {
     try {
-      const invoiceItems = JSON.parse(row.invoiceItems);
+      const invoiceItems = JSON.parse(row.invoiceItems as string);
       const invoiceObj = {
         ...row,
         invoiceItems
