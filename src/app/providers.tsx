@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * @deprecated This file is deprecated and kept for backward compatibility only.
+ * Use AuthProvider from @/providers/auth-provider instead.
+ *
+ * This demo user context will be removed in a future version.
+ * Migrate all usages of useDemoUser() to useAuth() from @/providers/auth-provider.
+ */
+
 import React, { createContext, useContext } from 'react';
 
 type DemoUser = {

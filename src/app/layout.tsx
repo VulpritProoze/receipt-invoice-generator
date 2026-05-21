@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
-import { Providers } from '@/app/providers';
+import { AuthProvider } from '@/providers/auth-provider';
 
 export const metadata: Metadata = {
   title: 'BillGen',
@@ -15,7 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>
+        <AuthProvider>
           <Nav />
 
           <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
@@ -23,7 +23,7 @@ export default function RootLayout({
           </main>
 
           <Footer />
-        </Providers>
+        </AuthProvider>
       </body>
     </html>
   );
