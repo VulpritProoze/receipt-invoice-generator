@@ -4,7 +4,7 @@
  * See DEC-006 for library choice (xlsx)
  */
 
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 import { v4 as uuidv4 } from 'uuid';
 import { invoiceItemSchema, type InvoiceItem } from '@/models/invoice';
 
@@ -36,7 +36,7 @@ export async function parseXLSX(fileBuffer: Buffer): Promise<InvoiceItem[]> {
   // If no items were parsed and there were errors, throw
   if (result.items.length === 0 && result.errors.length > 0) {
     throw new Error(
-      `XLSX parsing failed: ${result.errors.slice(0, 3).join('; ')}`,
+      `XLSX parsing failed: ${result.errors.slice(0, 3).join('; ')}`
     );
   }
 
@@ -51,7 +51,7 @@ export async function parseXLSX(fileBuffer: Buffer): Promise<InvoiceItem[]> {
  * @returns ParseResult with items, skipped count, and error messages
  */
 export async function parseXLSXWithDetails(
-  fileBuffer: Buffer,
+  fileBuffer: Buffer
 ): Promise<ParseResult> {
   const items: InvoiceItem[] = [];
   const errors: string[] = [];
@@ -78,7 +78,7 @@ export async function parseXLSXWithDetails(
     // Convert sheet to JSON with header row
     const jsonData = XLSX.utils.sheet_to_json<XLSXRow>(worksheet, {
       header: ['Description', 'Quantity', 'Rate', 'Date'],
-      defval: '',
+      defval: ''
     });
 
     // Check if sheet is empty
@@ -94,12 +94,12 @@ export async function parseXLSXWithDetails(
         headerRow[col as keyof XLSXRow] &&
         String(headerRow[col as keyof XLSXRow])
           .toLowerCase()
-          .includes(col.toLowerCase()),
+          .includes(col.toLowerCase())
     );
 
     if (!hasValidHeaders) {
       throw new Error(
-        `XLSX missing required columns: ${requiredColumns.join(', ')}`,
+        `XLSX missing required columns: ${requiredColumns.join(', ')}`
       );
     }
 
@@ -110,12 +110,7 @@ export async function parseXLSXWithDetails(
 
       try {
         // Skip completely empty rows
-        if (
-          !row.Description &&
-          !row.Quantity &&
-          !row.Rate &&
-          !row.Date
-        ) {
+        if (!row.Description && !row.Quantity && !row.Rate && !row.Date) {
           continue;
         }
 
@@ -127,9 +122,7 @@ export async function parseXLSXWithDetails(
 
         // Basic validation before Zod
         if (!description || isNaN(quantity) || isNaN(rate) || !date) {
-          errors.push(
-            `Row ${rowNumber}: Missing or invalid required fields`,
-          );
+          errors.push(`Row ${rowNumber}: Missing or invalid required fields`);
           skipped++;
           continue;
         }
@@ -150,7 +143,7 @@ export async function parseXLSXWithDetails(
           description,
           quantity: Math.floor(quantity), // Convert to integer
           rate,
-          date: formattedDate,
+          date: formattedDate
         };
 
         // Validate against Zod schema
@@ -177,8 +170,13 @@ export async function parseXLSXWithDetails(
     // Handle file-level errors (corrupted file, invalid format)
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error';
-    if (errorMessage.includes('Unsupported file') || errorMessage.includes('Invalid')) {
-      throw new Error(`Invalid or corrupted XLSX file: ${errorMessage}`);
+    if (
+      errorMessage.includes('Unsupported file') ||
+      errorMessage.includes('Invalid')
+    ) {
+      throw new Error(`Invalid or corrupted XLSX file: ${errorMessage}`, {
+        cause: error
+      });
     }
     throw error;
   }
@@ -187,7 +185,7 @@ export async function parseXLSXWithDetails(
   if (skipped > 0 && typeof console !== 'undefined') {
     console.warn(
       `XLSX import: ${skipped} rows skipped. First 5 errors:`,
-      errors.slice(0, 5),
+      errors.slice(0, 5)
     );
   }
 

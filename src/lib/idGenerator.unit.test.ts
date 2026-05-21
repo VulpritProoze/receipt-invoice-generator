@@ -63,7 +63,7 @@ describe('generateReceiptID', () => {
     const id1 = generateReceiptID();
     const id2 = generateReceiptID();
     const id3 = generateReceiptID();
-    
+
     expect(id1).not.toBe(id2);
     expect(id2).not.toBe(id3);
     expect(id1).not.toBe(id3);
@@ -72,7 +72,7 @@ describe('generateReceiptID', () => {
   it('generates IDs with only uppercase alphanumeric characters', () => {
     const receiptID = generateReceiptID();
     const suffix = receiptID.slice(3); // Remove "CH_" prefix
-    
+
     expect(suffix).toMatch(/^[A-Z0-9]+$/);
     expect(suffix).not.toMatch(/[a-z]/); // No lowercase
     expect(suffix).not.toMatch(/[^A-Z0-9]/); // No special chars
@@ -86,7 +86,7 @@ describe('generateReceiptID', () => {
       expect(id).toMatch(/^CH_[A-Z0-9]{17}$/);
       ids.add(id);
     }
-    
+
     // All IDs should be unique
     expect(ids.size).toBe(100);
   });

@@ -11,7 +11,10 @@ import { Receipt, receiptSchema } from '@/models/receipt';
  * Create a new receipt in Redis.
  * Creates a secondary index by invoiceID for lookups.
  */
-export async function createReceipt(userID: string, receipt: Receipt): Promise<void> {
+export async function createReceipt(
+  userID: string,
+  receipt: Receipt
+): Promise<void> {
   if (!redis) {
     throw new Error('Redis client not initialized');
   }
@@ -57,7 +60,8 @@ export async function getReceipt(
     return receiptSchema.parse(data);
   } catch (error) {
     throw new Error(
-      `Invalid receipt data in database for receiptID: ${receiptID}. Data integrity check failed.`
+      `Invalid receipt data in database for receiptID: ${receiptID}. Data integrity check failed.`,
+      { cause: error }
     );
   }
 }
@@ -127,7 +131,10 @@ export async function listReceipts(userID: string): Promise<Receipt[]> {
 /**
  * Delete a receipt and its invoice index.
  */
-export async function deleteReceipt(userID: string, receiptID: string): Promise<void> {
+export async function deleteReceipt(
+  userID: string,
+  receiptID: string
+): Promise<void> {
   if (!redis) {
     throw new Error('Redis client not initialized');
   }

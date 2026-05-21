@@ -64,7 +64,9 @@ describe('receiptService', () => {
       (dbInvoices.getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
       (dbReceipts.getReceiptByInvoiceID as jest.Mock).mockResolvedValue(null);
       (dbUsers.getUser as jest.Mock).mockResolvedValue(mockUser);
-      (idGenerator.generateReceiptID as jest.Mock).mockReturnValue('CH_A3K9MXQP2T7VWRJN');
+      (idGenerator.generateReceiptID as jest.Mock).mockReturnValue(
+        'CH_A3K9MXQP2T7VWRJN'
+      );
       (dbReceipts.createReceipt as jest.Mock).mockResolvedValue(undefined);
 
       const receiptData = {
@@ -79,7 +81,10 @@ describe('receiptService', () => {
       expect(result.receiptID).toBe('CH_A3K9MXQP2T7VWRJN');
       expect(result.accountBilled).toBe('testuser (test@example.com)');
       expect(result.chargedTo).toBe('Visa **** **** **** 1234');
-      expect(dbInvoices.getInvoice).toHaveBeenCalledWith('user-123', 'INV000000001');
+      expect(dbInvoices.getInvoice).toHaveBeenCalledWith(
+        'user-123',
+        'INV000000001'
+      );
       expect(dbReceipts.createReceipt).toHaveBeenCalled();
     });
 
@@ -93,7 +98,9 @@ describe('receiptService', () => {
         total: 100
       };
 
-      await expect(createReceipt('user-123', receiptData)).rejects.toThrow('Invoice not found');
+      await expect(createReceipt('user-123', receiptData)).rejects.toThrow(
+        'Invoice not found'
+      );
     });
 
     it('should throw error if receipt already exists for invoice', async () => {
@@ -127,7 +134,9 @@ describe('receiptService', () => {
       };
 
       (dbInvoices.getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
-      (dbReceipts.getReceiptByInvoiceID as jest.Mock).mockResolvedValue(existingReceipt);
+      (dbReceipts.getReceiptByInvoiceID as jest.Mock).mockResolvedValue(
+        existingReceipt
+      );
 
       const receiptData = {
         date: '2026-05-20',
@@ -170,7 +179,9 @@ describe('receiptService', () => {
         total: 100
       };
 
-      await expect(createReceipt('user-123', receiptData)).rejects.toThrow('User not found');
+      await expect(createReceipt('user-123', receiptData)).rejects.toThrow(
+        'User not found'
+      );
     });
   });
 
@@ -218,7 +229,9 @@ describe('receiptService', () => {
         createdAt: '2026-05-20'
       };
 
-      (dbReceipts.getReceiptByInvoiceID as jest.Mock).mockResolvedValue(mockReceipt);
+      (dbReceipts.getReceiptByInvoiceID as jest.Mock).mockResolvedValue(
+        mockReceipt
+      );
 
       const result = await getReceiptByInvoice('user-123', 'INV000000001');
 
@@ -256,7 +269,10 @@ describe('receiptService', () => {
 
       await deleteReceipt('user-123', 'CH_A3K9MXQP2T7VWRJN');
 
-      expect(dbReceipts.deleteReceipt).toHaveBeenCalledWith('user-123', 'CH_A3K9MXQP2T7VWRJN');
+      expect(dbReceipts.deleteReceipt).toHaveBeenCalledWith(
+        'user-123',
+        'CH_A3K9MXQP2T7VWRJN'
+      );
     });
   });
 });

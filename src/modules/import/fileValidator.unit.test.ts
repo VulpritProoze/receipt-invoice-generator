@@ -7,7 +7,7 @@ import {
   validateFileType,
   validateFileSize,
   sanitizeFilename,
-  getFileType,
+  getFileType
 } from './fileValidator';
 
 describe('fileValidator', () => {
@@ -20,15 +20,15 @@ describe('fileValidator', () => {
       expect(
         validateFileType(
           'data.xlsx',
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ),
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
       ).toBe(true);
     });
 
     it('should accept XLSX file with legacy Excel MIME type', () => {
-      expect(
-        validateFileType('data.xlsx', 'application/vnd.ms-excel'),
-      ).toBe(true);
+      expect(validateFileType('data.xlsx', 'application/vnd.ms-excel')).toBe(
+        true
+      );
     });
 
     it('should reject file with valid MIME but wrong extension', () => {
@@ -37,13 +37,13 @@ describe('fileValidator', () => {
 
     it('should reject file with valid extension but wrong MIME', () => {
       expect(validateFileType('data.csv', 'application/octet-stream')).toBe(
-        false,
+        false
       );
     });
 
     it('should reject executable file extension', () => {
       expect(validateFileType('malware.exe', 'application/octet-stream')).toBe(
-        false,
+        false
       );
     });
 
@@ -58,7 +58,7 @@ describe('fileValidator', () => {
     it('should be case-insensitive for extensions', () => {
       expect(validateFileType('DATA.CSV', 'text/csv')).toBe(true);
       expect(validateFileType('Data.XlSx', 'application/vnd.ms-excel')).toBe(
-        true,
+        true
       );
     });
   });
@@ -105,9 +105,7 @@ describe('fileValidator', () => {
     });
 
     it('should replace backslashes with underscores', () => {
-      expect(sanitizeFilename('path\\to\\file.csv')).toBe(
-        'path_to_file.csv',
-      );
+      expect(sanitizeFilename('path\\to\\file.csv')).toBe('path_to_file.csv');
     });
 
     it('should remove null bytes', () => {
@@ -135,7 +133,7 @@ describe('fileValidator', () => {
 
     it('should handle path traversal attempts', () => {
       expect(sanitizeFilename('../../../etc/passwd')).toBe(
-        '.._.._.._etc_passwd',
+        '.._.._.._etc_passwd'
       );
     });
   });

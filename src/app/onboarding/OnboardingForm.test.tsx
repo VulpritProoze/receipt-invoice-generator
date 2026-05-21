@@ -36,14 +36,18 @@ describe('OnboardingForm', () => {
       expect(screen.getByLabelText(/company website/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/logo url/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/street address/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/city, state\/province/i)).toBeInTheDocument();
+      expect(
+        screen.getByLabelText(/city, state\/province/i)
+      ).toBeInTheDocument();
       expect(screen.getByLabelText(/country/i)).toBeInTheDocument();
     });
 
     it('should render submit button as disabled initially', () => {
       render(<OnboardingForm userID={testUserID} />);
 
-      const submitButton = screen.getByRole('button', { name: /complete setup/i });
+      const submitButton = screen.getByRole('button', {
+        name: /complete setup/i
+      });
       expect(submitButton).toBeDisabled();
     });
 
@@ -84,7 +88,7 @@ describe('OnboardingForm', () => {
       render(<OnboardingForm userID={testUserID} />);
 
       const brandNameInput = screen.getByLabelText(/brand name/i);
-      
+
       // Trigger error
       fireEvent.blur(brandNameInput);
       await waitFor(() => {
@@ -92,10 +96,14 @@ describe('OnboardingForm', () => {
       });
 
       // Fix error
-      fireEvent.change(brandNameInput, { target: { value: 'Valid Brand Name' } });
-      
+      fireEvent.change(brandNameInput, {
+        target: { value: 'Valid Brand Name' }
+      });
+
       await waitFor(() => {
-        expect(screen.queryByText(/brand name is required/i)).not.toBeInTheDocument();
+        expect(
+          screen.queryByText(/brand name is required/i)
+        ).not.toBeInTheDocument();
       });
     });
 
@@ -107,7 +115,9 @@ describe('OnboardingForm', () => {
       fireEvent.blur(brandNameInput);
 
       await waitFor(() => {
-        expect(screen.getByText(/must not exceed 100 characters/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/must not exceed 100 characters/i)
+        ).toBeInTheDocument();
       });
     });
 
@@ -115,16 +125,32 @@ describe('OnboardingForm', () => {
       render(<OnboardingForm userID={testUserID} />);
 
       // Fill all fields with valid data
-      fireEvent.change(screen.getByLabelText(/brand name/i), { target: { value: 'Test Brand' } });
-      fireEvent.change(screen.getByLabelText(/company legal name/i), { target: { value: 'Test Company Inc.' } });
-      fireEvent.change(screen.getByLabelText(/company website/i), { target: { value: 'https://example.com' } });
-      fireEvent.change(screen.getByLabelText(/logo url/i), { target: { value: 'https://example.com/logo.png' } });
-      fireEvent.change(screen.getByLabelText(/street address/i), { target: { value: '123 Test Street' } });
-      fireEvent.change(screen.getByLabelText(/city, state\/province/i), { target: { value: 'Test City, TS 12345' } });
-      fireEvent.change(screen.getByLabelText(/country/i), { target: { value: 'Test Country' } });
+      fireEvent.change(screen.getByLabelText(/brand name/i), {
+        target: { value: 'Test Brand' }
+      });
+      fireEvent.change(screen.getByLabelText(/company legal name/i), {
+        target: { value: 'Test Company Inc.' }
+      });
+      fireEvent.change(screen.getByLabelText(/company website/i), {
+        target: { value: 'https://example.com' }
+      });
+      fireEvent.change(screen.getByLabelText(/logo url/i), {
+        target: { value: 'https://example.com/logo.png' }
+      });
+      fireEvent.change(screen.getByLabelText(/street address/i), {
+        target: { value: '123 Test Street' }
+      });
+      fireEvent.change(screen.getByLabelText(/city, state\/province/i), {
+        target: { value: 'Test City, TS 12345' }
+      });
+      fireEvent.change(screen.getByLabelText(/country/i), {
+        target: { value: 'Test Country' }
+      });
 
       await waitFor(() => {
-        const submitButton = screen.getByRole('button', { name: /complete setup/i });
+        const submitButton = screen.getByRole('button', {
+          name: /complete setup/i
+        });
         expect(submitButton).not.toBeDisabled();
       });
     });
@@ -142,13 +168,27 @@ describe('OnboardingForm', () => {
     };
 
     const fillForm = () => {
-      fireEvent.change(screen.getByLabelText(/brand name/i), { target: { value: validFormData.brandName } });
-      fireEvent.change(screen.getByLabelText(/company legal name/i), { target: { value: validFormData.companyName } });
-      fireEvent.change(screen.getByLabelText(/company website/i), { target: { value: validFormData.companyUrl } });
-      fireEvent.change(screen.getByLabelText(/logo url/i), { target: { value: validFormData.logoUrl } });
-      fireEvent.change(screen.getByLabelText(/street address/i), { target: { value: validFormData.addressLine } });
-      fireEvent.change(screen.getByLabelText(/city, state\/province/i), { target: { value: validFormData.postalAddress } });
-      fireEvent.change(screen.getByLabelText(/country/i), { target: { value: validFormData.country } });
+      fireEvent.change(screen.getByLabelText(/brand name/i), {
+        target: { value: validFormData.brandName }
+      });
+      fireEvent.change(screen.getByLabelText(/company legal name/i), {
+        target: { value: validFormData.companyName }
+      });
+      fireEvent.change(screen.getByLabelText(/company website/i), {
+        target: { value: validFormData.companyUrl }
+      });
+      fireEvent.change(screen.getByLabelText(/logo url/i), {
+        target: { value: validFormData.logoUrl }
+      });
+      fireEvent.change(screen.getByLabelText(/street address/i), {
+        target: { value: validFormData.addressLine }
+      });
+      fireEvent.change(screen.getByLabelText(/city, state\/province/i), {
+        target: { value: validFormData.postalAddress }
+      });
+      fireEvent.change(screen.getByLabelText(/country/i), {
+        target: { value: validFormData.country }
+      });
     };
 
     it('should submit form with valid data', async () => {
@@ -160,7 +200,9 @@ describe('OnboardingForm', () => {
       render(<OnboardingForm userID={testUserID} />);
       fillForm();
 
-      const submitButton = screen.getByRole('button', { name: /complete setup/i });
+      const submitButton = screen.getByRole('button', {
+        name: /complete setup/i
+      });
       fireEvent.click(submitButton);
 
       await waitFor(() => {
@@ -186,7 +228,9 @@ describe('OnboardingForm', () => {
       render(<OnboardingForm userID={testUserID} />);
       fillForm();
 
-      const submitButton = screen.getByRole('button', { name: /complete setup/i });
+      const submitButton = screen.getByRole('button', {
+        name: /complete setup/i
+      });
       fireEvent.click(submitButton);
 
       await waitFor(() => {
@@ -202,7 +246,9 @@ describe('OnboardingForm', () => {
       render(<OnboardingForm userID={testUserID} />);
       fillForm();
 
-      const submitButton = screen.getByRole('button', { name: /complete setup/i });
+      const submitButton = screen.getByRole('button', {
+        name: /complete setup/i
+      });
       fireEvent.click(submitButton);
 
       expect(screen.getByText(/completing setup/i)).toBeInTheDocument();
@@ -218,7 +264,9 @@ describe('OnboardingForm', () => {
       render(<OnboardingForm userID={testUserID} />);
       fillForm();
 
-      const submitButton = screen.getByRole('button', { name: /complete setup/i });
+      const submitButton = screen.getByRole('button', {
+        name: /complete setup/i
+      });
       fireEvent.click(submitButton);
 
       await waitFor(() => {
@@ -230,10 +278,16 @@ describe('OnboardingForm', () => {
       render(<OnboardingForm userID={testUserID} />);
 
       // Fill only some fields
-      fireEvent.change(screen.getByLabelText(/brand name/i), { target: { value: 'Test Brand' } });
-      fireEvent.change(screen.getByLabelText(/company legal name/i), { target: { value: 'Test Company' } });
+      fireEvent.change(screen.getByLabelText(/brand name/i), {
+        target: { value: 'Test Brand' }
+      });
+      fireEvent.change(screen.getByLabelText(/company legal name/i), {
+        target: { value: 'Test Company' }
+      });
 
-      const submitButton = screen.getByRole('button', { name: /complete setup/i });
+      const submitButton = screen.getByRole('button', {
+        name: /complete setup/i
+      });
       expect(submitButton).toBeDisabled();
 
       // Try to submit (should not call fetch)
@@ -251,7 +305,10 @@ describe('OnboardingForm', () => {
 
       await waitFor(() => {
         expect(brandNameInput).toHaveAttribute('aria-invalid', 'true');
-        expect(brandNameInput).toHaveAttribute('aria-describedby', 'brandName-error');
+        expect(brandNameInput).toHaveAttribute(
+          'aria-describedby',
+          'brandName-error'
+        );
       });
     });
 

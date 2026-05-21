@@ -29,9 +29,12 @@ export default function OnboardingForm({ userID }: OnboardingFormProps) {
   const validateField = (name: string, value: string) => {
     try {
       // Validate single field using Zod schema
-      const fieldSchema = companyConfigSchema.shape[name as keyof typeof companyConfigSchema.shape];
+      const fieldSchema =
+        companyConfigSchema.shape[
+          name as keyof typeof companyConfigSchema.shape
+        ];
       fieldSchema.parse(value);
-      
+
       // Clear error if validation passes
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -51,7 +54,7 @@ export default function OnboardingForm({ userID }: OnboardingFormProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    
+
     // Validate field on change (debounced by user typing)
     if (value) {
       validateField(name, value);
@@ -129,14 +132,17 @@ export default function OnboardingForm({ userID }: OnboardingFormProps) {
           Complete Your Company Profile
         </h2>
         <p className="text-gray-600 mb-8">
-          Please provide your company information to generate professional receipts and
-          invoices.
+          Please provide your company information to generate professional
+          receipts and invoices.
         </p>
 
         <div className="space-y-6">
           {/* Brand Name */}
           <div>
-            <label htmlFor="brandName" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="brandName"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Brand Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -152,7 +158,9 @@ export default function OnboardingForm({ userID }: OnboardingFormProps) {
                 errors.brandName ? 'border-red-500' : 'border-gray-300'
               }`}
               aria-invalid={!!errors.brandName}
-              aria-describedby={errors.brandName ? 'brandName-error' : undefined}
+              aria-describedby={
+                errors.brandName ? 'brandName-error' : undefined
+              }
             />
             {errors.brandName && (
               <p id="brandName-error" className="mt-1 text-sm text-red-600">
@@ -163,7 +171,10 @@ export default function OnboardingForm({ userID }: OnboardingFormProps) {
 
           {/* Company Name */}
           <div>
-            <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="companyName"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Company Legal Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -179,7 +190,9 @@ export default function OnboardingForm({ userID }: OnboardingFormProps) {
                 errors.companyName ? 'border-red-500' : 'border-gray-300'
               }`}
               aria-invalid={!!errors.companyName}
-              aria-describedby={errors.companyName ? 'companyName-error' : undefined}
+              aria-describedby={
+                errors.companyName ? 'companyName-error' : undefined
+              }
             />
             {errors.companyName && (
               <p id="companyName-error" className="mt-1 text-sm text-red-600">
@@ -190,7 +203,10 @@ export default function OnboardingForm({ userID }: OnboardingFormProps) {
 
           {/* Company URL */}
           <div>
-            <label htmlFor="companyUrl" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="companyUrl"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Company Website <span className="text-red-500">*</span>
             </label>
             <input
@@ -205,7 +221,9 @@ export default function OnboardingForm({ userID }: OnboardingFormProps) {
                 errors.companyUrl ? 'border-red-500' : 'border-gray-300'
               }`}
               aria-invalid={!!errors.companyUrl}
-              aria-describedby={errors.companyUrl ? 'companyUrl-error' : undefined}
+              aria-describedby={
+                errors.companyUrl ? 'companyUrl-error' : undefined
+              }
             />
             {errors.companyUrl && (
               <p id="companyUrl-error" className="mt-1 text-sm text-red-600">
@@ -216,7 +234,10 @@ export default function OnboardingForm({ userID }: OnboardingFormProps) {
 
           {/* Logo URL */}
           <div>
-            <label htmlFor="logoUrl" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="logoUrl"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Logo URL <span className="text-red-500">*</span>
             </label>
             <input
@@ -245,7 +266,10 @@ export default function OnboardingForm({ userID }: OnboardingFormProps) {
 
           {/* Address Line */}
           <div>
-            <label htmlFor="addressLine" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="addressLine"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Street Address <span className="text-red-500">*</span>
             </label>
             <input
@@ -261,7 +285,9 @@ export default function OnboardingForm({ userID }: OnboardingFormProps) {
                 errors.addressLine ? 'border-red-500' : 'border-gray-300'
               }`}
               aria-invalid={!!errors.addressLine}
-              aria-describedby={errors.addressLine ? 'addressLine-error' : undefined}
+              aria-describedby={
+                errors.addressLine ? 'addressLine-error' : undefined
+              }
             />
             {errors.addressLine && (
               <p id="addressLine-error" className="mt-1 text-sm text-red-600">
@@ -272,8 +298,12 @@ export default function OnboardingForm({ userID }: OnboardingFormProps) {
 
           {/* Postal Address */}
           <div>
-            <label htmlFor="postalAddress" className="block text-sm font-medium text-gray-700 mb-2">
-              City, State/Province & Postal Code <span className="text-red-500">*</span>
+            <label
+              htmlFor="postalAddress"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              City, State/Province & Postal Code{' '}
+              <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -288,7 +318,9 @@ export default function OnboardingForm({ userID }: OnboardingFormProps) {
                 errors.postalAddress ? 'border-red-500' : 'border-gray-300'
               }`}
               aria-invalid={!!errors.postalAddress}
-              aria-describedby={errors.postalAddress ? 'postalAddress-error' : undefined}
+              aria-describedby={
+                errors.postalAddress ? 'postalAddress-error' : undefined
+              }
             />
             {errors.postalAddress && (
               <p id="postalAddress-error" className="mt-1 text-sm text-red-600">
@@ -299,7 +331,10 @@ export default function OnboardingForm({ userID }: OnboardingFormProps) {
 
           {/* Country */}
           <div>
-            <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="country"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Country <span className="text-red-500">*</span>
             </label>
             <input

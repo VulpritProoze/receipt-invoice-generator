@@ -47,7 +47,10 @@ export async function POST(req: NextRequest) {
     const { userID, ...configData } = body;
 
     if (!userID) {
-      return NextResponse.json({ error: 'userID is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'userID is required' },
+        { status: 400 }
+      );
     }
 
     // Validate company config data

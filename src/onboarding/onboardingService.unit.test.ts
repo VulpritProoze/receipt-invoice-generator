@@ -9,8 +9,12 @@ import { CompanyConfig } from '@/models/company';
 // Mock the database layer
 jest.mock('@/lib/db/company');
 
-const mockGetCompanyConfig = getCompanyConfig as jest.MockedFunction<typeof getCompanyConfig>;
-const mockSetCompanyConfig = setCompanyConfig as jest.MockedFunction<typeof setCompanyConfig>;
+const mockGetCompanyConfig = getCompanyConfig as jest.MockedFunction<
+  typeof getCompanyConfig
+>;
+const mockSetCompanyConfig = setCompanyConfig as jest.MockedFunction<
+  typeof setCompanyConfig
+>;
 
 describe('onboardingService', () => {
   const testUserID = 'user-123';
@@ -48,7 +52,9 @@ describe('onboardingService', () => {
     });
 
     it('should propagate errors from database layer', async () => {
-      mockGetCompanyConfig.mockRejectedValue(new Error('Redis connection failed'));
+      mockGetCompanyConfig.mockRejectedValue(
+        new Error('Redis connection failed')
+      );
 
       await expect(checkOnboardingStatus(testUserID)).rejects.toThrow(
         'Redis connection failed'
@@ -62,7 +68,10 @@ describe('onboardingService', () => {
 
       await completeOnboarding(testUserID, validConfig);
 
-      expect(mockSetCompanyConfig).toHaveBeenCalledWith(testUserID, validConfig);
+      expect(mockSetCompanyConfig).toHaveBeenCalledWith(
+        testUserID,
+        validConfig
+      );
     });
 
     it('should propagate validation errors from database layer', async () => {
@@ -110,7 +119,9 @@ describe('onboardingService', () => {
     it('should propagate errors from database layer', async () => {
       mockGetCompanyConfig.mockRejectedValue(new Error('Database error'));
 
-      await expect(getOnboardingProgress(testUserID)).rejects.toThrow('Database error');
+      await expect(getOnboardingProgress(testUserID)).rejects.toThrow(
+        'Database error'
+      );
     });
   });
 });

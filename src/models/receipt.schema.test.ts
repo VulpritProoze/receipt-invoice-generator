@@ -182,7 +182,7 @@ describe('receiptSchema', () => {
     it('accepts valid positive total', () => {
       const result = receiptSchema.safeParse({
         ...validReceipt,
-        total: 5000.50
+        total: 5000.5
       });
       expect(result.success).toBe(true);
     });

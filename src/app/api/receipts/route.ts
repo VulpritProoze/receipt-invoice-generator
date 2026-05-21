@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { receiptSchema } from '@/models/receipt';
-import { createReceipt, listUserReceipts } from '@/modules/receipts/receiptService';
+import {
+  createReceipt,
+  listUserReceipts
+} from '@/modules/receipts/receiptService';
 
 /**
  * POST /api/receipts - Create a new receipt from an invoice
@@ -12,7 +14,13 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     // Validate required fields
-    const requiredFields = ['userID', 'date', 'invoiceID', 'invoiceItems', 'total'];
+    const requiredFields = [
+      'userID',
+      'date',
+      'invoiceID',
+      'invoiceItems',
+      'total'
+    ];
     const missingFields = requiredFields.filter((field) => !body[field]);
 
     if (missingFields.length > 0) {

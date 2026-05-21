@@ -9,7 +9,7 @@ import {
   validateFileType,
   validateFileSize,
   sanitizeFilename,
-  getFileType,
+  getFileType
 } from '@/modules/import/fileValidator';
 import { importBillingHistory } from '@/modules/import/importService';
 
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     if (!userID || typeof userID !== 'string') {
       return NextResponse.json(
         { error: 'userID is required' },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     if (!file || !(file instanceof File)) {
       return NextResponse.json(
         { error: 'file is required and must be a File' },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -60,9 +60,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB`,
-          filename: sanitizedFilename,
+          filename: sanitizedFilename
         },
-        { status: 413 },
+        { status: 413 }
       );
     }
 
@@ -70,12 +70,11 @@ export async function POST(req: NextRequest) {
     if (!validateFileType(file.name, file.type)) {
       return NextResponse.json(
         {
-          error:
-            'Invalid file type. Only CSV and XLSX files are accepted',
+          error: 'Invalid file type. Only CSV and XLSX files are accepted',
           filename: sanitizedFilename,
-          receivedType: file.type,
+          receivedType: file.type
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -85,9 +84,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error: 'Could not determine file type from extension',
-          filename: sanitizedFilename,
+          filename: sanitizedFilename
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -103,16 +102,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Import billing history
-    const result = await importBillingHistory(
-      userID,
-      fileContent,
-      fileType,
-    );
-
-    // Log import summary (server-side)
-    console.log(
-      `Import completed for user ${userID}: ${result.imported} imported, ${result.skipped} skipped`,
-    );
+    const result = await importBillingHistory(userID, fileContent, fileType);
 
     // Return success response
     return NextResponse.json(
@@ -120,9 +110,9 @@ export async function POST(req: NextRequest) {
         imported: result.imported,
         skipped: result.skipped,
         errors: result.errors,
-        filename: sanitizedFilename,
+        filename: sanitizedFilename
       },
-      { status: 200 },
+      { status: 200 }
     );
   } catch (error) {
     // Log error server-side (don't expose details to client)
@@ -135,9 +125,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error: 'Import failed',
-        message: errorMessage,
+        message: errorMessage
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

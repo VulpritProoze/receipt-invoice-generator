@@ -43,7 +43,9 @@ describe('receipts database operations', () => {
     it('should create a receipt with valid data', async () => {
       await createReceipt(userID, validReceipt);
 
-      const stored = await mockRedis.get(`receipt:${userID}:${validReceipt.receiptID}`);
+      const stored = await mockRedis.get(
+        `receipt:${userID}:${validReceipt.receiptID}`
+      );
       expect(stored).toEqual(validReceipt);
     });
 
@@ -73,7 +75,9 @@ describe('receipts database operations', () => {
         receiptID: 'INVALID'
       };
 
-      await expect(createReceipt(userID, invalidReceipt as Receipt)).rejects.toThrow();
+      await expect(
+        createReceipt(userID, invalidReceipt as Receipt)
+      ).rejects.toThrow();
     });
 
     it('should reject receipt with negative total', async () => {
@@ -82,7 +86,9 @@ describe('receipts database operations', () => {
         total: -100
       };
 
-      await expect(createReceipt(userID, invalidReceipt as Receipt)).rejects.toThrow();
+      await expect(
+        createReceipt(userID, invalidReceipt as Receipt)
+      ).rejects.toThrow();
     });
 
     it('should reject receipt with empty items array', async () => {
@@ -91,7 +97,9 @@ describe('receipts database operations', () => {
         invoiceItems: []
       };
 
-      await expect(createReceipt(userID, invalidReceipt as Receipt)).rejects.toThrow();
+      await expect(
+        createReceipt(userID, invalidReceipt as Receipt)
+      ).rejects.toThrow();
     });
   });
 
@@ -111,7 +119,10 @@ describe('receipts database operations', () => {
     });
 
     it('should return null for wrong userID', async () => {
-      const retrieved = await getReceipt('wrong-user-id', validReceipt.receiptID);
+      const retrieved = await getReceipt(
+        'wrong-user-id',
+        validReceipt.receiptID
+      );
       expect(retrieved).toBeNull();
     });
 
@@ -144,7 +155,10 @@ describe('receipts database operations', () => {
     });
 
     it('should return null for wrong userID', async () => {
-      const found = await getReceiptByInvoiceID('wrong-user-id', validReceipt.invoiceID);
+      const found = await getReceiptByInvoiceID(
+        'wrong-user-id',
+        validReceipt.invoiceID
+      );
       expect(found).toBeNull();
     });
 
@@ -176,7 +190,9 @@ describe('receipts database operations', () => {
 
       const receipts = await listReceipts(userID);
       expect(receipts).toHaveLength(2);
-      expect(receipts.map((r) => r.receiptID)).toContain(validReceipt.receiptID);
+      expect(receipts.map((r) => r.receiptID)).toContain(
+        validReceipt.receiptID
+      );
       expect(receipts.map((r) => r.receiptID)).toContain(receipt2.receiptID);
     });
 
@@ -243,7 +259,9 @@ describe('receipts database operations', () => {
     it('should delete receipt and invoice index', async () => {
       await deleteReceipt(userID, validReceipt.receiptID);
 
-      const receipt = await mockRedis.get(`receipt:${userID}:${validReceipt.receiptID}`);
+      const receipt = await mockRedis.get(
+        `receipt:${userID}:${validReceipt.receiptID}`
+      );
       expect(receipt).toBeNull();
 
       const invoiceIndex = await mockRedis.get(
@@ -276,7 +294,9 @@ describe('receipts database operations', () => {
       await createReceipt(userID, validReceipt);
 
       const keys = await mockRedis.keys(`receipt:invoice:${userID}:*`);
-      expect(keys).toContain(`receipt:invoice:${userID}:${validReceipt.invoiceID}`);
+      expect(keys).toContain(
+        `receipt:invoice:${userID}:${validReceipt.invoiceID}`
+      );
     });
   });
 });

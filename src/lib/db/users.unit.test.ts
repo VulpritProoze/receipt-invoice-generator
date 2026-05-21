@@ -34,7 +34,9 @@ describe('users database operations', () => {
     it('should create email index on user creation', async () => {
       await createUser(validUser);
 
-      const emailIndex = await mockRedis.get(`user:email:${validUser.userEmail}`);
+      const emailIndex = await mockRedis.get(
+        `user:email:${validUser.userEmail}`
+      );
       expect(emailIndex).toBe(validUser.userID);
     });
 
@@ -148,7 +150,9 @@ describe('users database operations', () => {
       const user = await mockRedis.get(`user:${validUser.userID}`);
       expect(user).toBeNull();
 
-      const emailIndex = await mockRedis.get(`user:email:${validUser.userEmail}`);
+      const emailIndex = await mockRedis.get(
+        `user:email:${validUser.userEmail}`
+      );
       expect(emailIndex).toBeNull();
     });
 

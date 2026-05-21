@@ -1,6 +1,6 @@
 /**
  * Security tests for Report Generation Module
- * 
+ *
  * Verifies security requirements:
  * 1. Receipt generation requires verified invoice from database
  * 2. User ownership is validated for both invoices and receipts
@@ -43,10 +43,10 @@ describe('Report Generation Security Tests', () => {
         quantity: 2,
         description: 'Consulting Services',
         rate: 1000,
-        date: '2026-05-15',
-      },
+        date: '2026-05-15'
+      }
     ],
-    createdAt: '2026-05-20',
+    createdAt: '2026-05-20'
   };
 
   const mockReceipt: Receipt = {
@@ -58,7 +58,7 @@ describe('Report Generation Security Tests', () => {
     total: 2240,
     chargedTo: 'Mastercard **** **** **** 4242',
     userID: 'user123',
-    createdAt: '2026-05-20',
+    createdAt: '2026-05-20'
   };
 
   const mockCompanyConfig: CompanyConfig = {
@@ -68,7 +68,7 @@ describe('Report Generation Security Tests', () => {
     addressLine: '123 Test Street',
     postalAddress: 'Test City, TC 12345',
     country: 'Test Country',
-    logoUrl: 'https://testcorp.com/logo.png',
+    logoUrl: 'https://testcorp.com/logo.png'
   };
 
   beforeEach(() => {
@@ -79,21 +79,26 @@ describe('Report Generation Security Tests', () => {
     it('should load invoice from database, not accept from request body', async () => {
       (receiptsDB.getReceipt as jest.Mock).mockResolvedValue(mockReceipt);
       (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
-      (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(mockCompanyConfig);
+      (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(
+        mockCompanyConfig
+      );
 
       await generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5');
 
       // Verify invoice was loaded from database using receipt's invoiceID
-      expect(invoicesDB.getInvoice).toHaveBeenCalledWith('user123', mockReceipt.invoiceID);
+      expect(invoicesDB.getInvoice).toHaveBeenCalledWith(
+        'user123',
+        mockReceipt.invoiceID
+      );
     });
 
     it('should reject receipt generation when invoice does not exist in database', async () => {
       (receiptsDB.getReceipt as jest.Mock).mockResolvedValue(mockReceipt);
       (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(null);
 
-      await expect(generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5')).rejects.toThrow(
-        'Related invoice not found',
-      );
+      await expect(
+        generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5')
+      ).rejects.toThrow('Related invoice not found');
     });
   });
 
@@ -102,18 +107,18 @@ describe('Report Generation Security Tests', () => {
       const otherUserInvoice = { ...mockInvoice, userID: 'otherUser' };
       (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(otherUserInvoice);
 
-      await expect(generateInvoiceReport('user123', 'INV000000001')).rejects.toThrow(
-        'Unauthorized: Invoice does not belong to this user',
-      );
+      await expect(
+        generateInvoiceReport('user123', 'INV000000001')
+      ).rejects.toThrow('Unauthorized: Invoice does not belong to this user');
     });
 
     it('should reject receipt generation when user does not own receipt', async () => {
       const otherUserReceipt = { ...mockReceipt, userID: 'otherUser' };
       (receiptsDB.getReceipt as jest.Mock).mockResolvedValue(otherUserReceipt);
 
-      await expect(generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5')).rejects.toThrow(
-        'Unauthorized: Receipt does not belong to this user',
-      );
+      await expect(
+        generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5')
+      ).rejects.toThrow('Unauthorized: Receipt does not belong to this user');
     });
 
     it('should reject receipt generation when invoice belongs to different user than receipt', async () => {
@@ -121,9 +126,9 @@ describe('Report Generation Security Tests', () => {
       (receiptsDB.getReceipt as jest.Mock).mockResolvedValue(mockReceipt);
       (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(otherUserInvoice);
 
-      await expect(generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5')).rejects.toThrow(
-        'Unauthorized: Invoice does not belong to this user',
-      );
+      await expect(
+        generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5')
+      ).rejects.toThrow('Unauthorized: Invoice does not belong to this user');
     });
   });
 
@@ -132,9 +137,9 @@ describe('Report Generation Security Tests', () => {
       (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
       (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(null);
 
-      await expect(generateInvoiceReport('user123', 'INV000000001')).rejects.toThrow(
-        'Company configuration not found',
-      );
+      await expect(
+        generateInvoiceReport('user123', 'INV000000001')
+      ).rejects.toThrow('Company configuration not found');
     });
 
     it('should reject receipt generation when company config does not exist', async () => {
@@ -142,9 +147,9 @@ describe('Report Generation Security Tests', () => {
       (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
       (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(null);
 
-      await expect(generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5')).rejects.toThrow(
-        'Company configuration not found',
-      );
+      await expect(
+        generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5')
+      ).rejects.toThrow('Company configuration not found');
     });
 
     it('should reject when any required company config field is empty', async () => {
@@ -154,17 +159,19 @@ describe('Report Generation Security Tests', () => {
         'companyUrl',
         'addressLine',
         'postalAddress',
-        'country',
+        'country'
       ];
 
       for (const field of requiredFields) {
         const incompleteConfig = { ...mockCompanyConfig, [field]: '' };
         (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
-        (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(incompleteConfig);
-
-        await expect(generateInvoiceReport('user123', 'INV000000001')).rejects.toThrow(
-          'Company configuration incomplete',
+        (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(
+          incompleteConfig
         );
+
+        await expect(
+          generateInvoiceReport('user123', 'INV000000001')
+        ).rejects.toThrow('Company configuration incomplete');
 
         jest.clearAllMocks();
       }
@@ -181,18 +188,20 @@ describe('Report Generation Security Tests', () => {
             quantity: 5,
             description: 'Service',
             rate: 100,
-            date: '2026-05-20',
-          },
+            date: '2026-05-20'
+          }
         ],
-        taxRate: 0.12,
+        taxRate: 0.12
       };
 
       (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(positiveInvoice);
-      (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(mockCompanyConfig);
+      (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(
+        mockCompanyConfig
+      );
 
       // Should not throw - positive values are valid
       await expect(
-        generateInvoiceReport('user123', 'INV000000001'),
+        generateInvoiceReport('user123', 'INV000000001')
       ).resolves.toBeDefined();
     });
 
@@ -206,29 +215,37 @@ describe('Report Generation Security Tests', () => {
             quantity: 1, // Zod enforces min 1
             description: 'Service',
             rate: 0, // But rate can be 0.01 minimum per schema
-            date: '2026-05-20',
-          },
-        ],
+            date: '2026-05-20'
+          }
+        ]
       };
 
-      (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(zeroQuantityInvoice);
-      (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(mockCompanyConfig);
+      (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(
+        zeroQuantityInvoice
+      );
+      (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(
+        mockCompanyConfig
+      );
 
       // Should not throw - calculation should handle edge case
       await expect(
-        generateInvoiceReport('user123', 'INV000000001'),
+        generateInvoiceReport('user123', 'INV000000001')
       ).resolves.toBeDefined();
     });
   });
 
   describe('Security Requirement: No sensitive data leaks in error messages', () => {
     it('should not expose database connection details in errors', async () => {
-      const dbError = new Error('Redis connection failed at redis://internal-host:6379');
+      const dbError = new Error(
+        'Redis connection failed at redis://internal-host:6379'
+      );
       (invoicesDB.getInvoice as jest.Mock).mockRejectedValue(dbError);
 
       // The service layer should catch and re-throw with safe message
       // or let it bubble up for the API layer to sanitize
-      await expect(generateInvoiceReport('user123', 'INV000000001')).rejects.toThrow();
+      await expect(
+        generateInvoiceReport('user123', 'INV000000001')
+      ).rejects.toThrow();
 
       // The thrown error should not contain connection details
       try {
@@ -242,11 +259,15 @@ describe('Report Generation Security Tests', () => {
     });
 
     it('should not expose internal file paths in errors', async () => {
-      const pathError = new Error('Failed to read /var/app/config/secrets.json');
+      const pathError = new Error(
+        'Failed to read /var/app/config/secrets.json'
+      );
       (companyDB.getCompanyConfig as jest.Mock).mockRejectedValue(pathError);
       (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
 
-      await expect(generateInvoiceReport('user123', 'INV000000001')).rejects.toThrow();
+      await expect(
+        generateInvoiceReport('user123', 'INV000000001')
+      ).rejects.toThrow();
 
       try {
         await generateInvoiceReport('user123', 'INV000000001');

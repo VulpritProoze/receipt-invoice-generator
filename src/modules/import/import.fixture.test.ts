@@ -110,7 +110,7 @@ describe('Import Fixture Tests', () => {
 
       // Errors should mention date validation
       const dateErrors = result.errors.filter((err) =>
-        err.toLowerCase().includes('date'),
+        err.toLowerCase().includes('date')
       );
       expect(dateErrors.length).toBeGreaterThan(0);
     });
@@ -145,7 +145,7 @@ describe('Import Fixture Tests', () => {
       const quantityErrors = result.errors.filter(
         (err) =>
           err.toLowerCase().includes('quantity') ||
-          err.toLowerCase().includes('missing'),
+          err.toLowerCase().includes('missing')
       );
       expect(quantityErrors.length).toBeGreaterThan(0);
     });
@@ -173,7 +173,7 @@ describe('Import Fixture Tests', () => {
         'valid-billing.csv',
         'valid-billing.xlsx',
         'invalid-dates.csv',
-        'missing-quantity.csv',
+        'missing-quantity.csv'
       ];
 
       expectedFiles.forEach((filename) => {
@@ -187,7 +187,7 @@ describe('Import Fixture Tests', () => {
         'valid-billing.csv',
         'valid-billing.xlsx',
         'invalid-dates.csv',
-        'missing-quantity.csv',
+        'missing-quantity.csv'
       ];
 
       files.forEach((filename) => {

@@ -6,7 +6,9 @@ import { checkOnboardingStatus } from '@/onboarding/onboardingService';
  * Used by protected routes that require company configuration.
  */
 
-export async function requireOnboarding(userID: string): Promise<{ redirect?: string }> {
+export async function requireOnboarding(
+  userID: string
+): Promise<{ redirect?: string }> {
   const isComplete = await checkOnboardingStatus(userID);
 
   if (!isComplete) {

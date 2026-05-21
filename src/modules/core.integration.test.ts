@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { registerUser, deleteUserAccount } from './users/userService';
-import { createInvoice, listUserInvoices, calculateInvoiceTotals } from './invoices/invoiceService';
+import {
+  createInvoice,
+  listUserInvoices,
+  calculateInvoiceTotals
+} from './invoices/invoiceService';
 import { createReceipt, listUserReceipts } from './receipts/receiptService';
 
 /**

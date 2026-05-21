@@ -7,7 +7,7 @@
 import {
   validateFileType,
   validateFileSize,
-  sanitizeFilename,
+  sanitizeFilename
 } from './fileValidator';
 import { parseCSV } from './csvParser';
 import { parseXLSX } from './xlsxParser';
@@ -16,7 +16,7 @@ describe('Import Security Tests', () => {
   describe('File type validation', () => {
     it('should reject .exe files', () => {
       expect(validateFileType('malware.exe', 'application/octet-stream')).toBe(
-        false,
+        false
       );
     });
 
@@ -48,7 +48,7 @@ describe('Import Security Tests', () => {
     it('should reject file with correct extension but wrong MIME', () => {
       // Attacker tries to upload executable with .csv extension
       expect(validateFileType('data.csv', 'application/octet-stream')).toBe(
-        false,
+        false
       );
     });
 
@@ -202,7 +202,7 @@ Item 3,3`;
 Item,1,100.00,2026-05-01`;
 
       await expect(importBillingHistory('', csv, 'csv')).rejects.toThrow(
-        'User ID is required',
+        'User ID is required'
       );
     });
 
@@ -212,7 +212,7 @@ Item,1,100.00,2026-05-01`;
 Item,1,100.00,2026-05-01`;
 
       await expect(importBillingHistory('   ', csv, 'csv')).rejects.toThrow(
-        'User ID is required',
+        'User ID is required'
       );
     });
   });

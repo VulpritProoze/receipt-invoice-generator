@@ -112,18 +112,9 @@ export class RedisClient {
    */
   async get<T>(key: string): Promise<T | null> {
     try {
-      return await withRetry(
-        () => this.client.get<T>(key),
-        'get',
-        key
-      );
+      return await withRetry(() => this.client.get<T>(key), 'get', key);
     } catch (error) {
-      throw new RedisError(
-        `Failed to get key: ${key}`,
-        'get',
-        key,
-        error
-      );
+      throw new RedisError(`Failed to get key: ${key}`, 'get', key, error);
     }
   }
 
@@ -133,18 +124,9 @@ export class RedisClient {
    */
   async set(key: string, value: unknown): Promise<void> {
     try {
-      await withRetry(
-        () => this.client.set(key, value),
-        'set',
-        key
-      );
+      await withRetry(() => this.client.set(key, value), 'set', key);
     } catch (error) {
-      throw new RedisError(
-        `Failed to set key: ${key}`,
-        'set',
-        key,
-        error
-      );
+      throw new RedisError(`Failed to set key: ${key}`, 'set', key, error);
     }
   }
 
@@ -154,18 +136,9 @@ export class RedisClient {
    */
   async del(key: string): Promise<number> {
     try {
-      return await withRetry(
-        () => this.client.del(key),
-        'del',
-        key
-      );
+      return await withRetry(() => this.client.del(key), 'del', key);
     } catch (error) {
-      throw new RedisError(
-        `Failed to delete key: ${key}`,
-        'del',
-        key,
-        error
-      );
+      throw new RedisError(`Failed to delete key: ${key}`, 'del', key, error);
     }
   }
 
@@ -175,18 +148,9 @@ export class RedisClient {
    */
   async hset(key: string, value: Record<string, unknown>): Promise<number> {
     try {
-      return await withRetry(
-        () => this.client.hset(key, value),
-        'hset',
-        key
-      );
+      return await withRetry(() => this.client.hset(key, value), 'hset', key);
     } catch (error) {
-      throw new RedisError(
-        `Failed to hset key: ${key}`,
-        'hset',
-        key,
-        error
-      );
+      throw new RedisError(`Failed to hset key: ${key}`, 'hset', key, error);
     }
   }
 
@@ -194,7 +158,9 @@ export class RedisClient {
    * Get all fields from a hash.
    * Returns null if the key does not exist.
    */
-  async hgetall<T extends Record<string, unknown>>(key: string): Promise<T | null> {
+  async hgetall<T extends Record<string, unknown>>(
+    key: string
+  ): Promise<T | null> {
     try {
       const result = await withRetry(
         () => this.client.hgetall<T>(key),
@@ -220,11 +186,7 @@ export class RedisClient {
    */
   async keys(pattern: string): Promise<string[]> {
     try {
-      return await withRetry(
-        () => this.client.keys(pattern),
-        'keys',
-        pattern
-      );
+      return await withRetry(() => this.client.keys(pattern), 'keys', pattern);
     } catch (error) {
       throw new RedisError(
         `Failed to scan keys with pattern: ${pattern}`,
@@ -241,11 +203,7 @@ export class RedisClient {
    */
   async incr(key: string): Promise<number> {
     try {
-      return await withRetry(
-        () => this.client.incr(key),
-        'incr',
-        key
-      );
+      return await withRetry(() => this.client.incr(key), 'incr', key);
     } catch (error) {
       throw new RedisError(
         `Failed to increment key: ${key}`,

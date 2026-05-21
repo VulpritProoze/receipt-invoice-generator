@@ -6,7 +6,7 @@
 import { parseXLSX, parseXLSXWithDetails } from './xlsxParser';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 
 describe('xlsxParser', () => {
   // Helper to create XLSX buffer from data
@@ -22,7 +22,7 @@ describe('xlsxParser', () => {
       const data = [
         ['Description', 'Quantity', 'Rate', 'Date'],
         ['Web hosting', 1, 1200.0, '2026-05-01'],
-        ['Design work', 2, 1500.0, '2026-05-02'],
+        ['Design work', 2, 1500.0, '2026-05-02']
       ];
       const buffer = createXLSXBuffer(data);
 
@@ -33,32 +33,30 @@ describe('xlsxParser', () => {
         description: 'Web hosting',
         quantity: 1,
         rate: 1200.0,
-        date: '2026-05-01',
+        date: '2026-05-01'
       });
       expect(items[0].itemID).toBeDefined();
       expect(items[1]).toMatchObject({
         description: 'Design work',
         quantity: 2,
         rate: 1500.0,
-        date: '2026-05-02',
+        date: '2026-05-02'
       });
     });
 
     it('should throw error for empty buffer', async () => {
-      await expect(parseXLSX(Buffer.from([]))).rejects.toThrow(
-        'File is empty',
-      );
+      await expect(parseXLSX(Buffer.from([]))).rejects.toThrow('File is empty');
     });
 
     it('should throw error for file with missing columns', async () => {
       const data = [
         ['Description', 'Quantity'],
-        ['Web hosting', 1],
+        ['Web hosting', 1]
       ];
       const buffer = createXLSXBuffer(data);
 
       await expect(parseXLSX(buffer)).rejects.toThrow(
-        'XLSX missing required columns',
+        'XLSX missing required columns'
       );
     });
 
@@ -66,7 +64,7 @@ describe('xlsxParser', () => {
       const data = [
         ['Description', 'Quantity', 'Rate', 'Date'],
         ['', '', '', ''],
-        ['invalid', 'not-a-number', 'not-a-number', 'invalid-date'],
+        ['invalid', 'not-a-number', 'not-a-number', 'invalid-date']
       ];
       const buffer = createXLSXBuffer(data);
 
@@ -79,7 +77,7 @@ describe('xlsxParser', () => {
         ['Valid item', 1, 100.0, '2026-05-01'],
         ['', '', '', ''],
         ['Invalid item', 'not-a-number', 100.0, '2026-05-02'],
-        ['Another valid', 2, 200.0, '2026-05-03'],
+        ['Another valid', 2, 200.0, '2026-05-03']
       ];
       const buffer = createXLSXBuffer(data);
 
@@ -93,7 +91,7 @@ describe('xlsxParser', () => {
     it('should handle XLSX with extra whitespace', async () => {
       const data = [
         ['Description', 'Quantity', 'Rate', 'Date'],
-        ['  Web hosting  ', '  1  ', '  1200.00  ', '  2026-05-01  '],
+        ['  Web hosting  ', '  1  ', '  1200.00  ', '  2026-05-01  ']
       ];
       const buffer = createXLSXBuffer(data);
 
@@ -107,7 +105,7 @@ describe('xlsxParser', () => {
     it('should convert quantity to integer', async () => {
       const data = [
         ['Description', 'Quantity', 'Rate', 'Date'],
-        ['Item', 2.7, 100.0, '2026-05-01'],
+        ['Item', 2.7, 100.0, '2026-05-01']
       ];
       const buffer = createXLSXBuffer(data);
 
@@ -120,7 +118,7 @@ describe('xlsxParser', () => {
     it('should handle Excel date serial numbers', async () => {
       const data = [
         ['Description', 'Quantity', 'Rate', 'Date'],
-        ['Item', 1, 100.0, 44682], // Excel serial for 2022-04-15
+        ['Item', 1, 100.0, 44682] // Excel serial for 2022-04-15
       ];
       const buffer = createXLSXBuffer(data);
 
@@ -137,7 +135,7 @@ describe('xlsxParser', () => {
         ['Description', 'Quantity', 'Rate', 'Date'],
         ['Valid item', 1, 100.0, '2026-05-01'],
         ['Invalid item', 'not-a-number', 100.0, '2026-05-02'],
-        ['Another valid', 2, 200.0, '2026-05-03'],
+        ['Another valid', 2, 200.0, '2026-05-03']
       ];
       const buffer = createXLSXBuffer(data);
 
@@ -152,7 +150,7 @@ describe('xlsxParser', () => {
     it('should report errors for rows with negative quantity', async () => {
       const data = [
         ['Description', 'Quantity', 'Rate', 'Date'],
-        ['Item', -1, 100.0, '2026-05-01'],
+        ['Item', -1, 100.0, '2026-05-01']
       ];
       const buffer = createXLSXBuffer(data);
 
@@ -166,7 +164,7 @@ describe('xlsxParser', () => {
     it('should report errors for rows with negative rate', async () => {
       const data = [
         ['Description', 'Quantity', 'Rate', 'Date'],
-        ['Item', 1, -100.0, '2026-05-01'],
+        ['Item', 1, -100.0, '2026-05-01']
       ];
       const buffer = createXLSXBuffer(data);
 
@@ -180,7 +178,7 @@ describe('xlsxParser', () => {
     it('should report errors for rows with invalid date format', async () => {
       const data = [
         ['Description', 'Quantity', 'Rate', 'Date'],
-        ['Item', 1, 100.0, '05/01/2026'],
+        ['Item', 1, 100.0, '05/01/2026']
       ];
       const buffer = createXLSXBuffer(data);
 
@@ -196,7 +194,7 @@ describe('xlsxParser', () => {
         ['Description', 'Quantity', 'Rate', 'Date'],
         ['Valid item', 1, 100.0, '2026-05-01'],
         ['', '', '', ''],
-        ['Another valid', 2, 200.0, '2026-05-03'],
+        ['Another valid', 2, 200.0, '2026-05-03']
       ];
       const buffer = createXLSXBuffer(data);
 
@@ -220,11 +218,7 @@ describe('xlsxParser', () => {
 
   describe('fixture file parsing', () => {
     it('should parse valid-billing.xlsx fixture', async () => {
-      const fixturePath = join(
-        __dirname,
-        '__fixtures__',
-        'valid-billing.xlsx',
-      );
+      const fixturePath = join(__dirname, '__fixtures__', 'valid-billing.xlsx');
       const buffer = readFileSync(fixturePath);
 
       const items = await parseXLSX(buffer);
@@ -251,11 +245,11 @@ describe('xlsxParser', () => {
       // Create empty workbook
       const wb = XLSX.utils.book_new();
       const buffer = Buffer.from(
-        XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }),
+        XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
       );
 
       await expect(parseXLSX(buffer)).rejects.toThrow(
-        'Workbook contains no sheets',
+        'Workbook contains no sheets'
       );
     });
   });

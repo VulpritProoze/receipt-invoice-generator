@@ -29,7 +29,9 @@ export async function setCompanyConfig(
  * Get company configuration for a user.
  * Returns null if no configuration exists (onboarding not completed).
  */
-export async function getCompanyConfig(userID: string): Promise<CompanyConfig | null> {
+export async function getCompanyConfig(
+  userID: string
+): Promise<CompanyConfig | null> {
   if (!redis) {
     throw new Error('Redis client not initialized');
   }
@@ -45,7 +47,8 @@ export async function getCompanyConfig(userID: string): Promise<CompanyConfig | 
     return companyConfigSchema.parse(data);
   } catch (error) {
     throw new Error(
-      `Invalid company config data in database for userID: ${userID}. Data integrity check failed.`
+      `Invalid company config data in database for userID: ${userID}. Data integrity check failed.`,
+      { cause: error }
     );
   }
 }

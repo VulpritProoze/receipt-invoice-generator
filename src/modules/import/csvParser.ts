@@ -36,7 +36,7 @@ export async function parseCSV(fileContent: string): Promise<InvoiceItem[]> {
   // If no items were parsed and there were errors, throw
   if (result.items.length === 0 && result.errors.length > 0) {
     throw new Error(
-      `CSV parsing failed: ${result.errors.slice(0, 3).join('; ')}`,
+      `CSV parsing failed: ${result.errors.slice(0, 3).join('; ')}`
     );
   }
 
@@ -51,7 +51,7 @@ export async function parseCSV(fileContent: string): Promise<InvoiceItem[]> {
  * @returns ParseResult with items, skipped count, and error messages
  */
 export async function parseCSVWithDetails(
-  fileContent: string,
+  fileContent: string
 ): Promise<ParseResult> {
   const items: InvoiceItem[] = [];
   const errors: string[] = [];
@@ -66,20 +66,20 @@ export async function parseCSVWithDetails(
   const parseResult = Papa.parse<CSVRow>(fileContent, {
     header: true,
     skipEmptyLines: true,
-    transformHeader: (header: string) => header.trim(),
+    transformHeader: (header: string) => header.trim()
   });
 
   // Check for parsing errors
   if (parseResult.errors.length > 0) {
     const criticalErrors = parseResult.errors.filter(
       (err: Papa.ParseError) =>
-        err.type === 'Delimiter' || err.type === 'FieldMismatch',
+        err.type === 'Delimiter' || err.type === 'FieldMismatch'
     );
     if (criticalErrors.length > 0) {
       errors.push(
         ...criticalErrors.map(
-          (err: Papa.ParseError) => `Row ${err.row}: ${err.message}`,
-        ),
+          (err: Papa.ParseError) => `Row ${err.row}: ${err.message}`
+        )
       );
     }
   }
@@ -88,12 +88,12 @@ export async function parseCSVWithDetails(
   const requiredColumns = ['Description', 'Quantity', 'Rate', 'Date'];
   const headers = parseResult.meta.fields || [];
   const missingColumns = requiredColumns.filter(
-    (col) => !headers.includes(col),
+    (col) => !headers.includes(col)
   );
 
   if (missingColumns.length > 0) {
     throw new Error(
-      `CSV missing required columns: ${missingColumns.join(', ')}`,
+      `CSV missing required columns: ${missingColumns.join(', ')}`
     );
   }
 
@@ -107,15 +107,8 @@ export async function parseCSVWithDetails(
       const rate = parseFloat(row.Rate);
 
       // Basic validation before Zod
-      if (
-        !row.Description ||
-        isNaN(quantity) ||
-        isNaN(rate) ||
-        !row.Date
-      ) {
-        errors.push(
-          `Row ${rowNumber}: Missing or invalid required fields`,
-        );
+      if (!row.Description || isNaN(quantity) || isNaN(rate) || !row.Date) {
+        errors.push(`Row ${rowNumber}: Missing or invalid required fields`);
         skipped++;
         return;
       }
@@ -126,7 +119,7 @@ export async function parseCSVWithDetails(
         description: row.Description.trim(),
         quantity: Math.floor(quantity), // Convert to integer
         rate: rate,
-        date: row.Date.trim(),
+        date: row.Date.trim()
       };
 
       // Validate against Zod schema
@@ -154,7 +147,7 @@ export async function parseCSVWithDetails(
   if (skipped > 0 && typeof console !== 'undefined') {
     console.warn(
       `CSV import: ${skipped} rows skipped. First 5 errors:`,
-      errors.slice(0, 5),
+      errors.slice(0, 5)
     );
   }
 

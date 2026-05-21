@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { invoiceSchema } from '@/models/invoice';
-import { createInvoice, listUserInvoices } from '@/modules/invoices/invoiceService';
+import {
+  createInvoice,
+  listUserInvoices
+} from '@/modules/invoices/invoiceService';
 
 /**
  * POST /api/invoices - Create a new invoice

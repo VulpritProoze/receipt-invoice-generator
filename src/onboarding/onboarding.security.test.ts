@@ -97,7 +97,9 @@ describe('Onboarding Security Tests', () => {
         companyUrl: 'not-a-valid-url'
       };
 
-      await expect(completeOnboarding(user1ID, invalidConfig as CompanyConfig)).rejects.toThrow();
+      await expect(
+        completeOnboarding(user1ID, invalidConfig as CompanyConfig)
+      ).rejects.toThrow();
     });
 
     it('should reject invalid logo URLs', async () => {
@@ -106,7 +108,9 @@ describe('Onboarding Security Tests', () => {
         logoUrl: 'not-a-url'
       };
 
-      await expect(completeOnboarding(user1ID, invalidConfig as CompanyConfig)).rejects.toThrow();
+      await expect(
+        completeOnboarding(user1ID, invalidConfig as CompanyConfig)
+      ).rejects.toThrow();
     });
 
     it('should reject relative URLs', async () => {
@@ -115,7 +119,9 @@ describe('Onboarding Security Tests', () => {
         companyUrl: '/relative/path'
       };
 
-      await expect(completeOnboarding(user1ID, invalidConfig as CompanyConfig)).rejects.toThrow();
+      await expect(
+        completeOnboarding(user1ID, invalidConfig as CompanyConfig)
+      ).rejects.toThrow();
     });
 
     it('should reject URLs without protocol', async () => {
@@ -124,7 +130,9 @@ describe('Onboarding Security Tests', () => {
         logoUrl: 'example.com/logo.png'
       };
 
-      await expect(completeOnboarding(user1ID, invalidConfig as CompanyConfig)).rejects.toThrow();
+      await expect(
+        completeOnboarding(user1ID, invalidConfig as CompanyConfig)
+      ).rejects.toThrow();
     });
 
     it('should accept valid HTTPS URLs', async () => {
@@ -134,7 +142,9 @@ describe('Onboarding Security Tests', () => {
         logoUrl: 'https://secure-site.com/logo.png'
       };
 
-      await expect(completeOnboarding(user1ID, validHttpsConfig)).resolves.not.toThrow();
+      await expect(
+        completeOnboarding(user1ID, validHttpsConfig)
+      ).resolves.not.toThrow();
 
       const stored = await getCompanyConfig(user1ID);
       expect(stored?.companyUrl).toBe('https://secure-site.com');
@@ -148,7 +158,9 @@ describe('Onboarding Security Tests', () => {
         logoUrl: 'http://local-dev.com/logo.png'
       };
 
-      await expect(completeOnboarding(user1ID, validHttpConfig)).resolves.not.toThrow();
+      await expect(
+        completeOnboarding(user1ID, validHttpConfig)
+      ).resolves.not.toThrow();
     });
   });
 
@@ -203,7 +215,9 @@ describe('Onboarding Security Tests', () => {
         brandName: longBrandName
       };
 
-      await expect(completeOnboarding(user1ID, invalidConfig as CompanyConfig)).rejects.toThrow();
+      await expect(
+        completeOnboarding(user1ID, invalidConfig as CompanyConfig)
+      ).rejects.toThrow();
     });
 
     it('should reject companyName exceeding 200 characters', async () => {
@@ -213,7 +227,9 @@ describe('Onboarding Security Tests', () => {
         companyName: longCompanyName
       };
 
-      await expect(completeOnboarding(user1ID, invalidConfig as CompanyConfig)).rejects.toThrow();
+      await expect(
+        completeOnboarding(user1ID, invalidConfig as CompanyConfig)
+      ).rejects.toThrow();
     });
 
     it('should reject addressLine exceeding 200 characters', async () => {
@@ -223,7 +239,9 @@ describe('Onboarding Security Tests', () => {
         addressLine: longAddress
       };
 
-      await expect(completeOnboarding(user1ID, invalidConfig as CompanyConfig)).rejects.toThrow();
+      await expect(
+        completeOnboarding(user1ID, invalidConfig as CompanyConfig)
+      ).rejects.toThrow();
     });
 
     it('should reject postalAddress exceeding 100 characters', async () => {
@@ -233,7 +251,9 @@ describe('Onboarding Security Tests', () => {
         postalAddress: longPostal
       };
 
-      await expect(completeOnboarding(user1ID, invalidConfig as CompanyConfig)).rejects.toThrow();
+      await expect(
+        completeOnboarding(user1ID, invalidConfig as CompanyConfig)
+      ).rejects.toThrow();
     });
 
     it('should reject country exceeding 100 characters', async () => {
@@ -243,7 +263,9 @@ describe('Onboarding Security Tests', () => {
         country: longCountry
       };
 
-      await expect(completeOnboarding(user1ID, invalidConfig as CompanyConfig)).rejects.toThrow();
+      await expect(
+        completeOnboarding(user1ID, invalidConfig as CompanyConfig)
+      ).rejects.toThrow();
     });
 
     it('should accept fields at maximum allowed length', async () => {
@@ -257,7 +279,9 @@ describe('Onboarding Security Tests', () => {
         country: 'e'.repeat(100)
       };
 
-      await expect(completeOnboarding(user1ID, maxLengthConfig)).resolves.not.toThrow();
+      await expect(
+        completeOnboarding(user1ID, maxLengthConfig)
+      ).resolves.not.toThrow();
 
       const stored = await getCompanyConfig(user1ID);
       expect(stored?.brandName).toHaveLength(100);
@@ -275,7 +299,9 @@ describe('Onboarding Security Tests', () => {
         brandName: ''
       };
 
-      await expect(completeOnboarding(user1ID, invalidConfig as CompanyConfig)).rejects.toThrow();
+      await expect(
+        completeOnboarding(user1ID, invalidConfig as CompanyConfig)
+      ).rejects.toThrow();
     });
 
     it('should reject empty companyName', async () => {
@@ -284,7 +310,9 @@ describe('Onboarding Security Tests', () => {
         companyName: ''
       };
 
-      await expect(completeOnboarding(user1ID, invalidConfig as CompanyConfig)).rejects.toThrow();
+      await expect(
+        completeOnboarding(user1ID, invalidConfig as CompanyConfig)
+      ).rejects.toThrow();
     });
 
     it('should accept fields with leading/trailing whitespace but trim them', async () => {

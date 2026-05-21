@@ -7,7 +7,7 @@
 const ALLOWED_MIME_TYPES = [
   'text/csv',
   'application/vnd.ms-excel', // Legacy .xls MIME type
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' // .xlsx
 ] as const;
 
 const ALLOWED_EXTENSIONS = ['.csv', '.xlsx'] as const;
@@ -27,7 +27,7 @@ const FORBIDDEN_EXTENSIONS = [
   '.rpm',
   '.dmg',
   '.pkg',
-  '.msi',
+  '.msi'
 ] as const;
 
 /**
@@ -42,7 +42,7 @@ const FORBIDDEN_EXTENSIONS = [
 export function validateFileType(filename: string, mimeType: string): boolean {
   // Check MIME type
   const mimeValid = ALLOWED_MIME_TYPES.includes(
-    mimeType as (typeof ALLOWED_MIME_TYPES)[number],
+    mimeType as (typeof ALLOWED_MIME_TYPES)[number]
   );
 
   // Check file extension

@@ -8,7 +8,12 @@ import {
   listInvoices,
   getNextInvoiceSequence
 } from './invoices';
-import { createReceipt, getReceipt, getReceiptByInvoiceID, deleteReceipt } from './receipts';
+import {
+  createReceipt,
+  getReceipt,
+  getReceiptByInvoiceID,
+  deleteReceipt
+} from './receipts';
 import { setCompanyConfig, getCompanyConfig } from './company';
 import { User } from '@/models/user';
 import { Invoice, InvoiceItem } from '@/models/invoice';
@@ -157,7 +162,10 @@ describe('database integration tests', () => {
       expect(receipt).toEqual(validReceipt);
 
       // Verify receipt can be found by invoiceID
-      const receiptByInvoice = await getReceiptByInvoiceID(userID, validInvoice.invoiceID);
+      const receiptByInvoice = await getReceiptByInvoiceID(
+        userID,
+        validInvoice.invoiceID
+      );
       expect(receiptByInvoice).toEqual(validReceipt);
     });
 
@@ -170,7 +178,10 @@ describe('database integration tests', () => {
 
       await createReceipt(userID, receiptForNonExistentInvoice);
 
-      const receipt = await getReceipt(userID, receiptForNonExistentInvoice.receiptID);
+      const receipt = await getReceipt(
+        userID,
+        receiptForNonExistentInvoice.receiptID
+      );
       expect(receipt).not.toBeNull();
     });
   });

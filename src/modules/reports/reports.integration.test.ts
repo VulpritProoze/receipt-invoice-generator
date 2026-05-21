@@ -37,17 +37,17 @@ describe('Report Generation Integration Tests', () => {
         quantity: 2,
         description: 'Consulting Services',
         rate: 1000,
-        date: '2026-05-15',
+        date: '2026-05-15'
       },
       {
         itemID: 'item2',
         quantity: 1,
         description: 'Software License',
         rate: 500,
-        date: '2026-05-16',
-      },
+        date: '2026-05-16'
+      }
     ],
-    createdAt: '2026-05-20',
+    createdAt: '2026-05-20'
   };
 
   const mockReceipt: Receipt = {
@@ -59,7 +59,7 @@ describe('Report Generation Integration Tests', () => {
     total: 2800,
     chargedTo: 'Mastercard **** **** **** 4242',
     userID: 'user123',
-    createdAt: '2026-05-20',
+    createdAt: '2026-05-20'
   };
 
   const mockCompanyConfig: CompanyConfig = {
@@ -69,7 +69,7 @@ describe('Report Generation Integration Tests', () => {
     addressLine: '123 Test Street',
     postalAddress: 'Test City, TC 12345',
     country: 'Test Country',
-    logoUrl: 'https://testcorp.com/logo.png',
+    logoUrl: 'https://testcorp.com/logo.png'
   };
 
   beforeEach(() => {
@@ -84,7 +84,10 @@ describe('Report Generation Integration Tests', () => {
   describe('Invoice Report Generation - End to End', () => {
     it('should generate invoice PDF when all data exists in database', async () => {
       // Setup: Store invoice and company config in mock Redis
-      await redis.set(`invoice:user123:INV000000001`, JSON.stringify(mockInvoice));
+      await redis.set(
+        `invoice:user123:INV000000001`,
+        JSON.stringify(mockInvoice)
+      );
       await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
 
       // Execute: Generate invoice report
@@ -104,31 +107,44 @@ describe('Report Generation Integration Tests', () => {
       await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
 
       // Execute & Verify: Should throw error
-      await expect(generateInvoiceReport('user123', 'INV000000001')).rejects.toThrow(
-        'Invoice not found',
-      );
+      await expect(
+        generateInvoiceReport('user123', 'INV000000001')
+      ).rejects.toThrow('Invoice not found');
     });
 
     it('should fail when company config does not exist', async () => {
       // Setup: Only store invoice, no company config
-      await redis.set(`invoice:user123:INV000000001`, JSON.stringify(mockInvoice));
+      await redis.set(
+        `invoice:user123:INV000000001`,
+        JSON.stringify(mockInvoice)
+      );
 
       // Execute & Verify: Should throw error
-      await expect(generateInvoiceReport('user123', 'INV000000001')).rejects.toThrow(
-        'Company configuration not found',
-      );
+      await expect(
+        generateInvoiceReport('user123', 'INV000000001')
+      ).rejects.toThrow('Company configuration not found');
     });
 
     it('should generate different PDFs for PHP vs USD currency', async () => {
       // Setup: Store PHP invoice
-      await redis.set(`invoice:user123:INV000000001`, JSON.stringify(mockInvoice));
+      await redis.set(
+        `invoice:user123:INV000000001`,
+        JSON.stringify(mockInvoice)
+      );
       await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
 
       const phpPDF = await generateInvoiceReport('user123', 'INV000000001');
 
       // Setup: Store USD invoice
-      const usdInvoice = { ...mockInvoice, invoiceID: 'INV000000002', currency: 'USD' as const };
-      await redis.set(`invoice:user123:INV000000002`, JSON.stringify(usdInvoice));
+      const usdInvoice = {
+        ...mockInvoice,
+        invoiceID: 'INV000000002',
+        currency: 'USD' as const
+      };
+      await redis.set(
+        `invoice:user123:INV000000002`,
+        JSON.stringify(usdInvoice)
+      );
 
       const usdPDF = await generateInvoiceReport('user123', 'INV000000002');
 
@@ -145,12 +161,21 @@ describe('Report Generation Integration Tests', () => {
   describe('Receipt Report Generation - End to End', () => {
     it('should generate receipt PDF when all data exists in database', async () => {
       // Setup: Store receipt, invoice, and company config in mock Redis
-      await redis.set(`receipt:user123:CH_A3K9MXQP2T7VWRJN5`, JSON.stringify(mockReceipt));
-      await redis.set(`invoice:user123:INV000000001`, JSON.stringify(mockInvoice));
+      await redis.set(
+        `receipt:user123:CH_A3K9MXQP2T7VWRJN5`,
+        JSON.stringify(mockReceipt)
+      );
+      await redis.set(
+        `invoice:user123:INV000000001`,
+        JSON.stringify(mockInvoice)
+      );
       await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
 
       // Execute: Generate receipt report
-      const pdfBuffer = await generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5');
+      const pdfBuffer = await generateReceiptReport(
+        'user123',
+        'CH_A3K9MXQP2T7VWRJN5'
+      );
 
       // Verify: PDF was generated
       expect(pdfBuffer).toBeInstanceOf(Buffer);
@@ -163,34 +188,46 @@ describe('Report Generation Integration Tests', () => {
 
     it('should fail when receipt does not exist in database', async () => {
       // Setup: Store invoice and company config, but no receipt
-      await redis.set(`invoice:user123:INV000000001`, JSON.stringify(mockInvoice));
+      await redis.set(
+        `invoice:user123:INV000000001`,
+        JSON.stringify(mockInvoice)
+      );
       await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
 
       // Execute & Verify: Should throw error
       await expect(
-        generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5'),
+        generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5')
       ).rejects.toThrow('Receipt not found');
     });
 
     it('should fail when related invoice does not exist in database', async () => {
       // Setup: Store receipt and company config, but no invoice
-      await redis.set(`receipt:user123:CH_A3K9MXQP2T7VWRJN5`, JSON.stringify(mockReceipt));
+      await redis.set(
+        `receipt:user123:CH_A3K9MXQP2T7VWRJN5`,
+        JSON.stringify(mockReceipt)
+      );
       await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
 
       // Execute & Verify: Should throw error
       await expect(
-        generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5'),
+        generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5')
       ).rejects.toThrow('Related invoice not found');
     });
 
     it('should fail when company config does not exist', async () => {
       // Setup: Store receipt and invoice, but no company config
-      await redis.set(`receipt:user123:CH_A3K9MXQP2T7VWRJN5`, JSON.stringify(mockReceipt));
-      await redis.set(`invoice:user123:INV000000001`, JSON.stringify(mockInvoice));
+      await redis.set(
+        `receipt:user123:CH_A3K9MXQP2T7VWRJN5`,
+        JSON.stringify(mockReceipt)
+      );
+      await redis.set(
+        `invoice:user123:INV000000001`,
+        JSON.stringify(mockInvoice)
+      );
 
       // Execute & Verify: Should throw error
       await expect(
-        generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5'),
+        generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5')
       ).rejects.toThrow('Company configuration not found');
     });
 
@@ -204,21 +241,27 @@ describe('Report Generation Integration Tests', () => {
             quantity: 99,
             description: 'Wrong Item',
             rate: 9999,
-            date: '2026-01-01',
-          },
-        ],
+            date: '2026-01-01'
+          }
+        ]
       };
       await redis.set(
         `receipt:user123:CH_A3K9MXQP2T7VWRJN5`,
-        JSON.stringify(receiptWithDifferentItems),
+        JSON.stringify(receiptWithDifferentItems)
       );
 
       // Store invoice with correct items
-      await redis.set(`invoice:user123:INV000000001`, JSON.stringify(mockInvoice));
+      await redis.set(
+        `invoice:user123:INV000000001`,
+        JSON.stringify(mockInvoice)
+      );
       await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
 
       // Execute: Generate receipt
-      const pdfBuffer = await generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5');
+      const pdfBuffer = await generateReceiptReport(
+        'user123',
+        'CH_A3K9MXQP2T7VWRJN5'
+      );
 
       // Verify: PDF was generated (using invoice data from database)
       expect(pdfBuffer).toBeInstanceOf(Buffer);
@@ -234,25 +277,34 @@ describe('Report Generation Integration Tests', () => {
   describe('Cross-User Isolation', () => {
     it('should not allow user to access another users invoice', async () => {
       // Setup: Store invoice for user123
-      await redis.set(`invoice:user123:INV000000001`, JSON.stringify(mockInvoice));
+      await redis.set(
+        `invoice:user123:INV000000001`,
+        JSON.stringify(mockInvoice)
+      );
       await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
 
       // Execute: Try to access as different user
-      await expect(generateInvoiceReport('user456', 'INV000000001')).rejects.toThrow(
-        'Invoice not found',
-      );
+      await expect(
+        generateInvoiceReport('user456', 'INV000000001')
+      ).rejects.toThrow('Invoice not found');
     });
 
     it('should not allow user to access another users receipt', async () => {
       // Setup: Store receipt for user123
-      await redis.set(`receipt:user123:CH_A3K9MXQP2T7VWRJN5`, JSON.stringify(mockReceipt));
-      await redis.set(`invoice:user123:INV000000001`, JSON.stringify(mockInvoice));
+      await redis.set(
+        `receipt:user123:CH_A3K9MXQP2T7VWRJN5`,
+        JSON.stringify(mockReceipt)
+      );
+      await redis.set(
+        `invoice:user123:INV000000001`,
+        JSON.stringify(mockInvoice)
+      );
       await redis.set(`company:user123`, JSON.stringify(mockCompanyConfig));
 
       // Execute: Try to access as different user
-      await expect(generateReceiptReport('user456', 'CH_A3K9MXQP2T7VWRJN5')).rejects.toThrow(
-        'Receipt not found',
-      );
+      await expect(
+        generateReceiptReport('user456', 'CH_A3K9MXQP2T7VWRJN5')
+      ).rejects.toThrow('Receipt not found');
     });
   });
 });

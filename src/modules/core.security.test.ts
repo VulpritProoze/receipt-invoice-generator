@@ -62,7 +62,7 @@ describe('Core Modules Security', () => {
       expect(() => maskCreditCard('')).toThrow();
 
       // Non-string
-      expect(() => maskCreditCard(null as any)).toThrow();
+      expect(() => maskCreditCard(null as unknown as string)).toThrow();
     });
   });
 
@@ -229,7 +229,8 @@ describe('Core Modules Security', () => {
         taxRate: 0
       });
 
-      const { calculateInvoiceTotals } = await import('./invoices/invoiceService');
+      const { calculateInvoiceTotals } =
+        await import('./invoices/invoiceService');
       const totals = calculateInvoiceTotals(invoice);
 
       // Verify totals are never negative
@@ -262,7 +263,7 @@ describe('Core Modules Security', () => {
     });
 
     it('should prevent email takeover via update', async () => {
-      const userA = await registerUser({
+      const _userA = await registerUser({
         username: 'usera',
         userEmail: 'usera@test.com',
         fullName: 'User A',

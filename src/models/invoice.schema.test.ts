@@ -262,7 +262,10 @@ describe('invoiceSchema', () => {
     it('accepts multiple invoice items', () => {
       const result = invoiceSchema.safeParse({
         ...validInvoice,
-        invoiceItems: [validInvoiceItem, { ...validInvoiceItem, itemID: 'item-002' }]
+        invoiceItems: [
+          validInvoiceItem,
+          { ...validInvoiceItem, itemID: 'item-002' }
+        ]
       });
       expect(result.success).toBe(true);
     });

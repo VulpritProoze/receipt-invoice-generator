@@ -1,19 +1,19 @@
 /**
  * Receipt PDF Generator
- * 
+ *
  * TEMPLATE ANALYSIS (docs/templates/receipt-template.png):
- * 
+ *
  * Page Structure:
  * 1. Header Section (centered):
  *    - Icon/logo (circular, centered)
  *    - "Receipt" label (large, centered below icon)
  *    - Horizontal spacing
- * 
+ *
  * 2. Thank You Message:
  *    - "We received payment for your [Service] subscription. Thanks for your business!"
  *    - "Questions? Visit [contact URL]"
  *    - Left-aligned, regular text
- * 
+ *
  * 3. Transaction Details (two-column layout):
  *    - Left column: labels (bold)
  *    - Right column: values (regular)
@@ -25,23 +25,23 @@
  *      - Charged to: card type **** **** **** [last 4]
  *      - Transaction ID: receipt ID
  *      - For service through: date
- * 
+ *
  * 4. Spacing:
  *    - Clean, generous whitespace between sections
  *    - Row spacing: ~18-20pt between detail rows
  *    - Margins: ~50pt all sides
- * 
+ *
  * Typography:
  * - "Receipt" label: ~24pt, regular weight
  * - Thank you message: ~10pt, regular
  * - Detail labels: ~10pt, bold
  * - Detail values: ~10pt, regular
- * 
+ *
  * Alignment:
  * - Header: centered
  * - Thank you message: left-aligned
  * - Details: two-column with labels left, values right-aligned in their column
- * 
+ *
  * Note: The template shows a simplified receipt. Our implementation includes:
  * - Line items from the invoice (not shown in template but required per spec)
  * - Company branding footer (required per spec)
@@ -54,7 +54,7 @@ import type { CompanyConfig } from '@/models/company';
 
 /**
  * Generate a receipt PDF matching the template layout
- * 
+ *
  * @param receipt - The receipt data with transaction details
  * @param invoice - The related invoice with line items
  * @param companyConfig - Company branding and contact information
@@ -63,13 +63,13 @@ import type { CompanyConfig } from '@/models/company';
 export async function generateReceiptPDF(
   receipt: Receipt,
   invoice: Invoice,
-  companyConfig: CompanyConfig,
+  companyConfig: CompanyConfig
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument({
         size: 'LETTER',
-        margins: { top: 50, bottom: 50, left: 50, right: 50 },
+        margins: { top: 50, bottom: 50, left: 50, right: 50 }
       });
 
       const chunks: Buffer[] = [];
@@ -88,7 +88,7 @@ export async function generateReceiptPDF(
       // Calculate total from invoice items
       const subtotal = invoice.invoiceItems.reduce(
         (sum, item) => sum + item.quantity * item.rate,
-        0,
+        0
       );
       const taxAmount = subtotal * invoice.taxRate;
       const total = subtotal + taxAmount;
@@ -108,14 +108,14 @@ export async function generateReceiptPDF(
         `We received payment for your ${companyConfig.brandName} subscription. Thanks for your business!`,
         50,
         yPos,
-        { width: 512 },
+        { width: 512 }
       );
       yPos += 20;
 
       doc.fillColor('blue');
       doc.text(`Questions? Visit ${companyConfig.companyUrl}`, 50, yPos, {
         width: 512,
-        underline: true,
+        underline: true
       });
       doc.fillColor('black');
       yPos += 40;
@@ -128,7 +128,13 @@ export async function generateReceiptPDF(
       doc.font('Helvetica-Bold').text('Date', labelX, yPos);
       doc
         .font('Helvetica')
-        .text(new Date(receipt.date).toLocaleString('en-US', { timeZoneName: 'short' }), valueX, yPos);
+        .text(
+          new Date(receipt.date).toLocaleString('en-US', {
+            timeZoneName: 'short'
+          }),
+          valueX,
+          yPos
+        );
       yPos += 20;
 
       // Account billed
@@ -137,13 +143,17 @@ export async function generateReceiptPDF(
       yPos += 20;
 
       // GitHub Plan (using brand name as service name)
-      doc.font('Helvetica-Bold').text(`${companyConfig.brandName} Plan`, labelX, yPos);
+      doc
+        .font('Helvetica-Bold')
+        .text(`${companyConfig.brandName} Plan`, labelX, yPos);
       doc.font('Helvetica').text('Pro', valueX, yPos); // Simplified - could be dynamic
       yPos += 20;
 
       // Total
       doc.font('Helvetica-Bold').text('Total', labelX, yPos);
-      doc.font('Helvetica').text(`${formatAmount(total)} ${invoice.currency}`, valueX, yPos);
+      doc
+        .font('Helvetica')
+        .text(`${formatAmount(total)} ${invoice.currency}`, valueX, yPos);
       yPos += 20;
 
       // Charged to
@@ -158,7 +168,9 @@ export async function generateReceiptPDF(
 
       // For service through
       doc.font('Helvetica-Bold').text('For service through', labelX, yPos);
-      doc.font('Helvetica').text(new Date(invoice.dueDate).toLocaleDateString(), valueX, yPos);
+      doc
+        .font('Helvetica')
+        .text(new Date(invoice.dueDate).toLocaleDateString(), valueX, yPos);
       yPos += 40;
 
       // ===== LINE ITEMS SECTION =====
@@ -184,10 +196,7 @@ export async function generateReceiptPDF(
       yPos += 15;
 
       // Underline
-      doc
-        .moveTo(50, yPos)
-        .lineTo(562, yPos)
-        .stroke();
+      doc.moveTo(50, yPos).lineTo(562, yPos).stroke();
       yPos += 10;
 
       // Items
@@ -195,9 +204,18 @@ export async function generateReceiptPDF(
       for (const item of invoice.invoiceItems) {
         const amount = item.quantity * item.rate;
         doc.text(item.description, colDescription, yPos, { width: 260 });
-        doc.text(item.quantity.toString(), colQuantity, yPos, { width: 70, align: 'right' });
-        doc.text(formatAmount(item.rate), colRate, yPos, { width: 70, align: 'right' });
-        doc.text(formatAmount(amount), colAmount, yPos, { width: 82, align: 'right' });
+        doc.text(item.quantity.toString(), colQuantity, yPos, {
+          width: 70,
+          align: 'right'
+        });
+        doc.text(formatAmount(item.rate), colRate, yPos, {
+          width: 70,
+          align: 'right'
+        });
+        doc.text(formatAmount(amount), colAmount, yPos, {
+          width: 82,
+          align: 'right'
+        });
         yPos += 18;
       }
 
@@ -206,28 +224,46 @@ export async function generateReceiptPDF(
       // Total line
       doc.font('Helvetica-Bold');
       doc.text('TOTAL:', colRate, yPos, { width: 70, align: 'right' });
-      doc.text(formatAmount(total), colAmount, yPos, { width: 82, align: 'right' });
+      doc.text(formatAmount(total), colAmount, yPos, {
+        width: 82,
+        align: 'right'
+      });
       yPos += 40;
 
       // ===== COMPANY BRANDING FOOTER =====
       doc.fontSize(9).font('Helvetica');
-      doc.text(companyConfig.brandName, 50, yPos, { align: 'center', width: 512 });
+      doc.text(companyConfig.brandName, 50, yPos, {
+        align: 'center',
+        width: 512
+      });
       yPos += 12;
-      doc.text(companyConfig.companyName, 50, yPos, { align: 'center', width: 512 });
+      doc.text(companyConfig.companyName, 50, yPos, {
+        align: 'center',
+        width: 512
+      });
       yPos += 12;
       doc.fillColor('blue');
       doc.text(companyConfig.companyUrl, 50, yPos, {
         align: 'center',
         width: 512,
-        underline: true,
+        underline: true
       });
       doc.fillColor('black');
       yPos += 12;
-      doc.text(companyConfig.addressLine, 50, yPos, { align: 'center', width: 512 });
+      doc.text(companyConfig.addressLine, 50, yPos, {
+        align: 'center',
+        width: 512
+      });
       yPos += 12;
-      doc.text(companyConfig.postalAddress, 50, yPos, { align: 'center', width: 512 });
+      doc.text(companyConfig.postalAddress, 50, yPos, {
+        align: 'center',
+        width: 512
+      });
       yPos += 12;
-      doc.text(companyConfig.country, 50, yPos, { align: 'center', width: 512 });
+      doc.text(companyConfig.country, 50, yPos, {
+        align: 'center',
+        width: 512
+      });
 
       doc.end();
     } catch (error) {

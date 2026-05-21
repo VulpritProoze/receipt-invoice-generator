@@ -1,5 +1,9 @@
 import { mockRedis } from '@/lib/__mocks__/redis';
-import { setCompanyConfig, getCompanyConfig, updateCompanyConfig } from './company';
+import {
+  setCompanyConfig,
+  getCompanyConfig,
+  updateCompanyConfig
+} from './company';
 import { CompanyConfig } from '@/models/company';
 
 // Mock the redis module

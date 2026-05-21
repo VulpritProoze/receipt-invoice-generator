@@ -5,6 +5,7 @@
 
 import { importBillingHistory, validateImportFile } from './importService';
 import * as invoicesDb from '@/lib/db/invoices';
+import * as XLSX from 'xlsx-js-style';
 
 // Mock the database module
 jest.mock('@/lib/db/invoices');
@@ -34,16 +35,15 @@ Design work,2,1500.00,2026-05-02`;
 
     it('should import valid XLSX file', async () => {
       // Create minimal XLSX buffer
-      const XLSX = require('xlsx');
       const data = [
         ['Description', 'Quantity', 'Rate', 'Date'],
-        ['Web hosting', 1, 1200.0, '2026-05-01'],
+        ['Web hosting', 1, 1200.0, '2026-05-01']
       ];
       const ws = XLSX.utils.aoa_to_sheet(data);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
       const buffer = Buffer.from(
-        XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }),
+        XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
       );
 
       const mockCreateInvoiceItem = jest
@@ -80,7 +80,7 @@ Another valid,2,200.00,2026-05-03`;
 Item,1,100.00,2026-05-01`;
 
       await expect(importBillingHistory('', csv, 'csv')).rejects.toThrow(
-        'User ID is required',
+        'User ID is required'
       );
     });
 
@@ -89,19 +89,19 @@ Item,1,100.00,2026-05-01`;
 Item,1,100.00,2026-05-01`;
 
       await expect(
-        importBillingHistory('user123', csv, 'txt' as 'csv'),
+        importBillingHistory('user123', csv, 'txt' as 'csv')
       ).rejects.toThrow('Unsupported file type');
     });
 
     it('should throw error if CSV content is not a string', async () => {
       await expect(
-        importBillingHistory('user123', Buffer.from('test'), 'csv'),
+        importBillingHistory('user123', Buffer.from('test'), 'csv')
       ).rejects.toThrow('CSV file content must be a string');
     });
 
     it('should throw error if XLSX content is not a Buffer', async () => {
       await expect(
-        importBillingHistory('user123', 'test', 'xlsx'),
+        importBillingHistory('user123', 'test', 'xlsx')
       ).rejects.toThrow('XLSX file content must be a Buffer');
     });
 
@@ -110,7 +110,7 @@ Item,1,100.00,2026-05-01`;
 Item 1,1,100.00,2026-05-01
 Item 2,2,200.00,2026-05-02`;
 
-      const mockCreateInvoiceItem = jest
+      jest
         .spyOn(invoicesDb, 'createInvoiceItem')
         .mockRejectedValueOnce(new Error('Storage error'))
         .mockResolvedValueOnce();
@@ -149,8 +149,8 @@ Item,1,100.00,2026-05-01`;
         expect.objectContaining({
           description: 'Item',
           quantity: 1,
-          rate: 100.0,
-        }),
+          rate: 100.0
+        })
       );
     });
   });
@@ -168,16 +168,15 @@ Invalid item,not-a-number,100.00,2026-05-02`;
     });
 
     it('should validate XLSX file without storing', async () => {
-      const XLSX = require('xlsx');
       const data = [
         ['Description', 'Quantity', 'Rate', 'Date'],
-        ['Valid item', 1, 100.0, '2026-05-01'],
+        ['Valid item', 1, 100.0, '2026-05-01']
       ];
       const ws = XLSX.utils.aoa_to_sheet(data);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
       const buffer = Buffer.from(
-        XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }),
+        XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
       );
 
       const result = await validateImportFile(buffer, 'xlsx');

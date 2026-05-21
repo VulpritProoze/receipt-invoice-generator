@@ -9,7 +9,7 @@ import {
 } from './invoiceService';
 import * as dbInvoices from '@/lib/db/invoices';
 import * as idGenerator from '@/lib/idGenerator';
-import { Invoice, InvoiceItem } from '@/models/invoice';
+import { Invoice } from '@/models/invoice';
 
 // Mock database operations
 jest.mock('@/lib/db/invoices');
@@ -90,7 +90,9 @@ describe('invoiceService', () => {
   describe('createInvoice', () => {
     it('should create invoice with generated ID', async () => {
       (dbInvoices.getNextInvoiceSequence as jest.Mock).mockResolvedValue(1);
-      (idGenerator.generateInvoiceID as jest.Mock).mockReturnValue('INV000000001');
+      (idGenerator.generateInvoiceID as jest.Mock).mockReturnValue(
+        'INV000000001'
+      );
       (dbInvoices.createInvoice as jest.Mock).mockResolvedValue(undefined);
 
       const invoiceData = {
@@ -119,7 +121,9 @@ describe('invoiceService', () => {
 
       expect(result.invoiceID).toBe('INV000000001');
       expect(result.userID).toBe('user-123');
-      expect(dbInvoices.getNextInvoiceSequence).toHaveBeenCalledWith('user-123');
+      expect(dbInvoices.getNextInvoiceSequence).toHaveBeenCalledWith(
+        'user-123'
+      );
       expect(idGenerator.generateInvoiceID).toHaveBeenCalledWith(1);
       expect(dbInvoices.createInvoice).toHaveBeenCalled();
     });
@@ -186,12 +190,18 @@ describe('invoiceService', () => {
         .mockResolvedValueOnce(updatedInvoice);
       (dbInvoices.updateInvoice as jest.Mock).mockResolvedValue(undefined);
 
-      const result = await updateInvoice('user-123', 'INV000000001', { terms: 'Net 30' });
-
-      expect(result.terms).toBe('Net 30');
-      expect(dbInvoices.updateInvoice).toHaveBeenCalledWith('user-123', 'INV000000001', {
+      const result = await updateInvoice('user-123', 'INV000000001', {
         terms: 'Net 30'
       });
+
+      expect(result.terms).toBe('Net 30');
+      expect(dbInvoices.updateInvoice).toHaveBeenCalledWith(
+        'user-123',
+        'INV000000001',
+        {
+          terms: 'Net 30'
+        }
+      );
     });
 
     it('should throw error if invoice not found', async () => {
@@ -209,7 +219,10 @@ describe('invoiceService', () => {
 
       await deleteInvoice('user-123', 'INV000000001');
 
-      expect(dbInvoices.deleteInvoice).toHaveBeenCalledWith('user-123', 'INV000000001');
+      expect(dbInvoices.deleteInvoice).toHaveBeenCalledWith(
+        'user-123',
+        'INV000000001'
+      );
     });
   });
 

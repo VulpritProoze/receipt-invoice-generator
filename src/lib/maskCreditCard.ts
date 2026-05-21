@@ -19,9 +19,7 @@ export function maskCreditCard(cardNumber: string): string {
 
   // Validate length (most credit cards are 13-19 digits, but we'll accept 13-19)
   if (digitsOnly.length < 13 || digitsOnly.length > 19) {
-    throw new Error(
-      'Credit card number must contain between 13 and 19 digits'
-    );
+    throw new Error('Credit card number must contain between 13 and 19 digits');
   }
 
   // Extract last 4 digits

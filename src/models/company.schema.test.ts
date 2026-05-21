@@ -163,13 +163,13 @@ describe('companyConfigSchema', () => {
 
   describe('missing fields', () => {
     it('rejects config missing brandName', () => {
-      const { brandName, ...incomplete } = validCompanyConfig;
+      const { brandName: _brandName, ...incomplete } = validCompanyConfig;
       const result = companyConfigSchema.safeParse(incomplete);
       expect(result.success).toBe(false);
     });
 
     it('rejects config missing companyUrl', () => {
-      const { companyUrl, ...incomplete } = validCompanyConfig;
+      const { companyUrl: _companyUrl, ...incomplete } = validCompanyConfig;
       const result = companyConfigSchema.safeParse(incomplete);
       expect(result.success).toBe(false);
     });

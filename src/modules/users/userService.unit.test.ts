@@ -32,7 +32,9 @@ describe('userService', () => {
     it('should create a new user with generated UUID and masked credit card', async () => {
       const mockMaskedCard = '**** **** **** 1234';
       (dbUsers.getUserByEmail as jest.Mock).mockResolvedValue(null);
-      (maskCreditCardModule.maskCreditCard as jest.Mock).mockReturnValue(mockMaskedCard);
+      (maskCreditCardModule.maskCreditCard as jest.Mock).mockReturnValue(
+        mockMaskedCard
+      );
       (dbUsers.createUser as jest.Mock).mockResolvedValue(undefined);
 
       const userData = {
@@ -47,7 +49,9 @@ describe('userService', () => {
 
       expect(result.userID).toBe('test-uuid-1234');
       expect(result.creditCardNumber).toBe(mockMaskedCard);
-      expect(maskCreditCardModule.maskCreditCard).toHaveBeenCalledWith('4111111111111111');
+      expect(maskCreditCardModule.maskCreditCard).toHaveBeenCalledWith(
+        '4111111111111111'
+      );
       expect(dbUsers.createUser).toHaveBeenCalledWith(
         expect.objectContaining({
           userID: 'test-uuid-1234',
@@ -78,7 +82,9 @@ describe('userService', () => {
         creditCardType: 'Visa'
       };
 
-      await expect(registerUser(userData)).rejects.toThrow('Email already registered');
+      await expect(registerUser(userData)).rejects.toThrow(
+        'Email already registered'
+      );
     });
   });
 
@@ -131,10 +137,14 @@ describe('userService', () => {
         .mockResolvedValueOnce(updatedUser);
       (dbUsers.updateUser as jest.Mock).mockResolvedValue(undefined);
 
-      const result = await updateUserProfile('user-123', { fullName: 'Updated Name' });
+      const result = await updateUserProfile('user-123', {
+        fullName: 'Updated Name'
+      });
 
       expect(result.fullName).toBe('Updated Name');
-      expect(dbUsers.updateUser).toHaveBeenCalledWith('user-123', { fullName: 'Updated Name' });
+      expect(dbUsers.updateUser).toHaveBeenCalledWith('user-123', {
+        fullName: 'Updated Name'
+      });
     });
 
     it('should mask credit card when updating', async () => {
@@ -150,13 +160,22 @@ describe('userService', () => {
       const mockMaskedCard = '**** **** **** 5678';
       (dbUsers.getUser as jest.Mock)
         .mockResolvedValueOnce(existingUser)
-        .mockResolvedValueOnce({ ...existingUser, creditCardNumber: mockMaskedCard });
-      (maskCreditCardModule.maskCreditCard as jest.Mock).mockReturnValue(mockMaskedCard);
+        .mockResolvedValueOnce({
+          ...existingUser,
+          creditCardNumber: mockMaskedCard
+        });
+      (maskCreditCardModule.maskCreditCard as jest.Mock).mockReturnValue(
+        mockMaskedCard
+      );
       (dbUsers.updateUser as jest.Mock).mockResolvedValue(undefined);
 
-      await updateUserProfile('user-123', { creditCardNumber: '5555555555555555' });
+      await updateUserProfile('user-123', {
+        creditCardNumber: '5555555555555555'
+      });
 
-      expect(maskCreditCardModule.maskCreditCard).toHaveBeenCalledWith('5555555555555555');
+      expect(maskCreditCardModule.maskCreditCard).toHaveBeenCalledWith(
+        '5555555555555555'
+      );
       expect(dbUsers.updateUser).toHaveBeenCalledWith('user-123', {
         creditCardNumber: mockMaskedCard
       });
@@ -165,9 +184,9 @@ describe('userService', () => {
     it('should throw error if user not found', async () => {
       (dbUsers.getUser as jest.Mock).mockResolvedValue(null);
 
-      await expect(updateUserProfile('nonexistent', { fullName: 'New Name' })).rejects.toThrow(
-        'User not found'
-      );
+      await expect(
+        updateUserProfile('nonexistent', { fullName: 'New Name' })
+      ).rejects.toThrow('User not found');
     });
 
     it('should throw error if email is taken by another user', async () => {

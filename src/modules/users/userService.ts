@@ -86,7 +86,9 @@ export async function updateUserProfile(
   // If updating credit card, mask it
   const processedUpdates: Partial<User> = { ...updates };
   if (updates.creditCardNumber) {
-    processedUpdates.creditCardNumber = maskCreditCard(updates.creditCardNumber);
+    processedUpdates.creditCardNumber = maskCreditCard(
+      updates.creditCardNumber
+    );
   }
 
   // If updating email, check it's not taken by another user

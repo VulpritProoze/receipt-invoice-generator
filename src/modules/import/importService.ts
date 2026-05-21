@@ -4,8 +4,8 @@
  * See DEC-006 for parser library choices
  */
 
-import { parseCSV, parseCSVWithDetails } from './csvParser';
-import { parseXLSX, parseXLSXWithDetails } from './xlsxParser';
+import { parseCSVWithDetails } from './csvParser';
+import { parseXLSXWithDetails } from './xlsxParser';
 import type { InvoiceItem } from '@/models/invoice';
 import { createInvoiceItem } from '@/lib/db/invoices';
 
@@ -29,7 +29,7 @@ export interface ImportResult {
 export async function importBillingHistory(
   userID: string,
   fileContent: string | Buffer,
-  fileType: 'csv' | 'xlsx',
+  fileType: 'csv' | 'xlsx'
 ): Promise<ImportResult> {
   // Validate userID
   if (!userID || userID.trim().length === 0) {
@@ -37,8 +37,8 @@ export async function importBillingHistory(
   }
 
   let items: InvoiceItem[];
-  let skipped = 0;
-  let errors: string[] = [];
+  let skipped: number;
+  let errors: string[];
 
   try {
     // Parse file based on type
@@ -67,7 +67,7 @@ export async function importBillingHistory(
       return {
         imported: 0,
         skipped,
-        errors: errors.length > 0 ? errors : ['No valid items found in file'],
+        errors: errors.length > 0 ? errors : ['No valid items found in file']
       };
     }
 
@@ -83,7 +83,7 @@ export async function importBillingHistory(
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown storage error';
         storageErrors.push(
-          `Failed to store item ${item.itemID}: ${errorMessage}`,
+          `Failed to store item ${item.itemID}: ${errorMessage}`
         );
         skipped++;
       }
@@ -94,27 +94,24 @@ export async function importBillingHistory(
 
     // Log import summary (server-side only)
     if (typeof console !== 'undefined') {
-      console.log(
-        `Import complete for user ${userID}: ${imported} imported, ${skipped} skipped`,
-      );
       if (allErrors.length > 0) {
         console.warn(
-          `Import errors (first 5):`,
-          allErrors.slice(0, 5),
+          `Import complete with errors for user ${userID}: ${imported} imported, ${skipped} skipped`
         );
+        console.warn(`Import errors (first 5):`, allErrors.slice(0, 5));
       }
     }
 
     return {
       imported,
       skipped,
-      errors: allErrors,
+      errors: allErrors
     };
   } catch (error) {
     // Handle file-level parsing errors
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error';
-    throw new Error(`Import failed: ${errorMessage}`);
+    throw new Error(`Import failed: ${errorMessage}`, { cause: error });
   }
 }
 
@@ -129,7 +126,7 @@ export async function importBillingHistory(
  */
 export async function validateImportFile(
   fileContent: string | Buffer,
-  fileType: 'csv' | 'xlsx',
+  fileType: 'csv' | 'xlsx'
 ): Promise<{ validItems: number; errors: string[] }> {
   try {
     let items: InvoiceItem[];
@@ -155,14 +152,14 @@ export async function validateImportFile(
 
     return {
       validItems: items.length,
-      errors,
+      errors
     };
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error';
     return {
       validItems: 0,
-      errors: [errorMessage],
+      errors: [errorMessage]
     };
   }
 }

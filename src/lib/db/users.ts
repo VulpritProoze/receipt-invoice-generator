@@ -46,7 +46,8 @@ export async function getUser(userID: string): Promise<User | null> {
     return userSchema.parse(data);
   } catch (error) {
     throw new Error(
-      `Invalid user data in database for userID: ${userID}. Data integrity check failed.`
+      `Invalid user data in database for userID: ${userID}. Data integrity check failed.`,
+      { cause: error }
     );
   }
 }

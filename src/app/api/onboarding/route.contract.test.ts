@@ -10,12 +10,14 @@ import { CompanyConfig } from '@/models/company';
 // Mock the onboarding service
 jest.mock('@/onboarding/onboardingService');
 
-const mockGetOnboardingProgress = onboardingService.getOnboardingProgress as jest.MockedFunction<
-  typeof onboardingService.getOnboardingProgress
->;
-const mockCompleteOnboarding = onboardingService.completeOnboarding as jest.MockedFunction<
-  typeof onboardingService.completeOnboarding
->;
+const mockGetOnboardingProgress =
+  onboardingService.getOnboardingProgress as jest.MockedFunction<
+    typeof onboardingService.getOnboardingProgress
+  >;
+const mockCompleteOnboarding =
+  onboardingService.completeOnboarding as jest.MockedFunction<
+    typeof onboardingService.completeOnboarding
+  >;
 
 describe('GET /api/onboarding', () => {
   const validConfig: CompanyConfig = {
@@ -38,7 +40,9 @@ describe('GET /api/onboarding', () => {
       config: validConfig
     });
 
-    const req = new NextRequest('http://localhost:3000/api/onboarding?userID=user-123');
+    const req = new NextRequest(
+      'http://localhost:3000/api/onboarding?userID=user-123'
+    );
     const response = await GET(req);
     const data = await response.json();
 
@@ -56,7 +60,9 @@ describe('GET /api/onboarding', () => {
       config: null
     });
 
-    const req = new NextRequest('http://localhost:3000/api/onboarding?userID=user-456');
+    const req = new NextRequest(
+      'http://localhost:3000/api/onboarding?userID=user-456'
+    );
     const response = await GET(req);
     const data = await response.json();
 
@@ -82,7 +88,9 @@ describe('GET /api/onboarding', () => {
   it('should return 500 when service throws error', async () => {
     mockGetOnboardingProgress.mockRejectedValue(new Error('Database error'));
 
-    const req = new NextRequest('http://localhost:3000/api/onboarding?userID=user-123');
+    const req = new NextRequest(
+      'http://localhost:3000/api/onboarding?userID=user-123'
+    );
     const response = await GET(req);
     const data = await response.json();
 
@@ -136,7 +144,7 @@ describe('POST /api/onboarding', () => {
   });
 
   it('should return 400 when userID is missing', async () => {
-    const { userID, ...bodyWithoutUserID } = validRequestBody;
+    const { userID: _userID, ...bodyWithoutUserID } = validRequestBody;
 
     const req = new NextRequest('http://localhost:3000/api/onboarding', {
       method: 'POST',
@@ -154,7 +162,7 @@ describe('POST /api/onboarding', () => {
   });
 
   it('should return 400 when brandName is missing', async () => {
-    const { brandName, ...bodyWithoutBrandName } = validRequestBody;
+    const { brandName: _brandName, ...bodyWithoutBrandName } = validRequestBody;
 
     const req = new NextRequest('http://localhost:3000/api/onboarding', {
       method: 'POST',

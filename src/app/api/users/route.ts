@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { userSchema } from '@/models/user';
 import { registerUser, findUserByEmail } from '@/modules/users/userService';
 
 /**
@@ -96,10 +95,7 @@ export async function GET(req: NextRequest) {
     console.error('Error finding user by email:', error);
 
     // Generic error response - don't expose internal details
-    return NextResponse.json(
-      { error: 'Failed to find user' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to find user' }, { status: 500 });
   }
 }
 

@@ -1,4 +1,4 @@
-import { Invoice, invoiceSchema, InvoiceItem } from '@/models/invoice';
+import { Invoice, invoiceSchema } from '@/models/invoice';
 import { generateInvoiceID } from '@/lib/idGenerator';
 import {
   createInvoice as dbCreateInvoice,
@@ -131,7 +131,10 @@ export async function updateInvoice(
  * @param userID - User's unique identifier
  * @param invoiceID - Invoice ID
  */
-export async function deleteInvoice(userID: string, invoiceID: string): Promise<void> {
+export async function deleteInvoice(
+  userID: string,
+  invoiceID: string
+): Promise<void> {
   await dbDeleteInvoice(userID, invoiceID);
 }
 

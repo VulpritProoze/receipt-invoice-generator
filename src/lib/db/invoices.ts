@@ -1,5 +1,10 @@
 import { redis } from '@/lib/redis';
-import { Invoice, invoiceSchema, InvoiceItem, invoiceItemSchema } from '@/models/invoice';
+import {
+  Invoice,
+  invoiceSchema,
+  InvoiceItem,
+  invoiceItemSchema
+} from '@/models/invoice';
 
 /**
  * Database operations for Invoice entities.
@@ -10,7 +15,10 @@ import { Invoice, invoiceSchema, InvoiceItem, invoiceItemSchema } from '@/models
 /**
  * Create a new invoice in Redis.
  */
-export async function createInvoice(userID: string, invoice: Invoice): Promise<void> {
+export async function createInvoice(
+  userID: string,
+  invoice: Invoice
+): Promise<void> {
   if (!redis) {
     throw new Error('Redis client not initialized');
   }
@@ -50,7 +58,8 @@ export async function getInvoice(
     return invoiceSchema.parse(data);
   } catch (error) {
     throw new Error(
-      `Invalid invoice data in database for invoiceID: ${invoiceID}. Data integrity check failed.`
+      `Invalid invoice data in database for invoiceID: ${invoiceID}. Data integrity check failed.`,
+      { cause: error }
     );
   }
 }
@@ -98,7 +107,10 @@ export async function updateInvoice(
 /**
  * Delete an invoice.
  */
-export async function deleteInvoice(userID: string, invoiceID: string): Promise<void> {
+export async function deleteInvoice(
+  userID: string,
+  invoiceID: string
+): Promise<void> {
   if (!redis) {
     throw new Error('Redis client not initialized');
   }
@@ -202,7 +214,8 @@ export async function getInvoiceItem(
     return invoiceItemSchema.parse(data);
   } catch (error) {
     throw new Error(
-      `Invalid invoice item data in database for itemID: ${itemID}. Data integrity check failed.`
+      `Invalid invoice item data in database for itemID: ${itemID}. Data integrity check failed.`,
+      { cause: error }
     );
   }
 }

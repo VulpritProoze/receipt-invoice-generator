@@ -26,9 +26,7 @@ describe('maskCreditCard', () => {
   });
 
   it('handles 19-digit card numbers (maximum valid length)', () => {
-    expect(maskCreditCard('4111111111111111234')).toBe(
-      '**** **** **** 1234'
-    );
+    expect(maskCreditCard('4111111111111111234')).toBe('**** **** **** 1234');
   });
 
   it('extracts last 4 digits correctly', () => {
@@ -44,16 +42,16 @@ describe('maskCreditCard', () => {
   });
 
   it('throws error for null or undefined', () => {
-    expect(() => maskCreditCard(null as any)).toThrow(
+    expect(() => maskCreditCard(null as unknown as string)).toThrow(
       'Credit card number must be a non-empty string'
     );
-    expect(() => maskCreditCard(undefined as any)).toThrow(
+    expect(() => maskCreditCard(undefined as unknown as string)).toThrow(
       'Credit card number must be a non-empty string'
     );
   });
 
   it('throws error for non-string input', () => {
-    expect(() => maskCreditCard(123456789 as any)).toThrow(
+    expect(() => maskCreditCard(123456789 as unknown as string)).toThrow(
       'Credit card number must be a non-empty string'
     );
   });
@@ -85,9 +83,7 @@ describe('maskCreditCard', () => {
   it('handles card numbers with various non-digit characters', () => {
     expect(maskCreditCard('4111.1111.1111.1234')).toBe('**** **** **** 1234');
     expect(maskCreditCard('4111/1111/1111/1234')).toBe('**** **** **** 1234');
-    expect(maskCreditCard('(4111) 1111-1111 1234')).toBe(
-      '**** **** **** 1234'
-    );
+    expect(maskCreditCard('(4111) 1111-1111 1234')).toBe('**** **** **** 1234');
   });
 
   it('returns consistent format regardless of input format', () => {

@@ -49,7 +49,9 @@ describe('invoices database operations', () => {
     it('should create an invoice with valid data', async () => {
       await createInvoice(userID, validInvoice);
 
-      const stored = await mockRedis.get(`invoice:${userID}:${validInvoice.invoiceID}`);
+      const stored = await mockRedis.get(
+        `invoice:${userID}:${validInvoice.invoiceID}`
+      );
       expect(stored).toEqual(validInvoice);
     });
 
@@ -70,7 +72,9 @@ describe('invoices database operations', () => {
         invoiceID: 'INVALID'
       };
 
-      await expect(createInvoice(userID, invalidInvoice as Invoice)).rejects.toThrow();
+      await expect(
+        createInvoice(userID, invalidInvoice as Invoice)
+      ).rejects.toThrow();
     });
 
     it('should reject invoice with negative tax rate', async () => {
@@ -79,7 +83,9 @@ describe('invoices database operations', () => {
         taxRate: -0.1
       };
 
-      await expect(createInvoice(userID, invalidInvoice as Invoice)).rejects.toThrow();
+      await expect(
+        createInvoice(userID, invalidInvoice as Invoice)
+      ).rejects.toThrow();
     });
 
     it('should reject invoice with empty items array', async () => {
@@ -88,7 +94,9 @@ describe('invoices database operations', () => {
         invoiceItems: []
       };
 
-      await expect(createInvoice(userID, invalidInvoice as Invoice)).rejects.toThrow();
+      await expect(
+        createInvoice(userID, invalidInvoice as Invoice)
+      ).rejects.toThrow();
     });
   });
 
@@ -108,7 +116,10 @@ describe('invoices database operations', () => {
     });
 
     it('should return null for wrong userID', async () => {
-      const retrieved = await getInvoice('wrong-user-id', validInvoice.invoiceID);
+      const retrieved = await getInvoice(
+        'wrong-user-id',
+        validInvoice.invoiceID
+      );
       expect(retrieved).toBeNull();
     });
 
@@ -179,7 +190,9 @@ describe('invoices database operations', () => {
     it('should delete an invoice', async () => {
       await deleteInvoice(userID, validInvoice.invoiceID);
 
-      const invoice = await mockRedis.get(`invoice:${userID}:${validInvoice.invoiceID}`);
+      const invoice = await mockRedis.get(
+        `invoice:${userID}:${validInvoice.invoiceID}`
+      );
       expect(invoice).toBeNull();
     });
 
@@ -207,7 +220,9 @@ describe('invoices database operations', () => {
 
       const invoices = await listInvoices(userID);
       expect(invoices).toHaveLength(2);
-      expect(invoices.map((i) => i.invoiceID)).toContain(validInvoice.invoiceID);
+      expect(invoices.map((i) => i.invoiceID)).toContain(
+        validInvoice.invoiceID
+      );
       expect(invoices.map((i) => i.invoiceID)).toContain(invoice2.invoiceID);
     });
 

@@ -25,7 +25,10 @@ import { getUser } from '@/lib/db/users';
  */
 export async function createReceipt(
   userID: string,
-  receiptData: Omit<Receipt, 'receiptID' | 'userID' | 'createdAt' | 'accountBilled' | 'chargedTo'>
+  receiptData: Omit<
+    Receipt,
+    'receiptID' | 'userID' | 'createdAt' | 'accountBilled' | 'chargedTo'
+  >
 ): Promise<Receipt> {
   // SECURITY REQUIREMENT: Verify invoice exists and belongs to this user
   const invoice = await getInvoice(userID, receiptData.invoiceID);
@@ -34,7 +37,10 @@ export async function createReceipt(
   }
 
   // Check if receipt already exists for this invoice
-  const existingReceipt = await dbGetReceiptByInvoiceID(userID, receiptData.invoiceID);
+  const existingReceipt = await dbGetReceiptByInvoiceID(
+    userID,
+    receiptData.invoiceID
+  );
   if (existingReceipt) {
     throw new Error('Receipt already exists for this invoice');
   }
@@ -120,7 +126,10 @@ export async function listUserReceipts(userID: string): Promise<Receipt[]> {
  * @param userID - User's unique identifier
  * @param receiptID - Receipt ID
  */
-export async function deleteReceipt(userID: string, receiptID: string): Promise<void> {
+export async function deleteReceipt(
+  userID: string,
+  receiptID: string
+): Promise<void> {
   await dbDeleteReceipt(userID, receiptID);
 }
 

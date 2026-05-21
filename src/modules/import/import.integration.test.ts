@@ -8,6 +8,7 @@ import { importBillingHistory } from './importService';
 import { redis } from '@/lib/redis';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import * as XLSX from 'xlsx-js-style';
 
 // Mock Redis is automatically used via jest.setup.ts
 
@@ -83,17 +84,16 @@ Valid item 2,2,200.00,2026-05-03`;
 
   describe('Complete XLSX import workflow', () => {
     it('should import XLSX file and store items in database', async () => {
-      const XLSX = require('xlsx');
       const data = [
         ['Description', 'Quantity', 'Rate', 'Date'],
         ['Web hosting', 1, 1200.0, '2026-05-01'],
-        ['Design work', 2, 1500.0, '2026-05-02'],
+        ['Design work', 2, 1500.0, '2026-05-02']
       ];
       const ws = XLSX.utils.aoa_to_sheet(data);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
       const buffer = Buffer.from(
-        XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }),
+        XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
       );
 
       const result = await importBillingHistory('user123', buffer, 'xlsx');
@@ -109,11 +109,7 @@ Valid item 2,2,200.00,2026-05-03`;
 
   describe('Fixture file integration', () => {
     it('should import valid-billing.csv fixture completely', async () => {
-      const fixturePath = join(
-        __dirname,
-        '__fixtures__',
-        'valid-billing.csv',
-      );
+      const fixturePath = join(__dirname, '__fixtures__', 'valid-billing.csv');
       const csv = readFileSync(fixturePath, 'utf-8');
 
       const result = await importBillingHistory('user123', csv, 'csv');
@@ -128,11 +124,7 @@ Valid item 2,2,200.00,2026-05-03`;
     });
 
     it('should import valid-billing.xlsx fixture completely', async () => {
-      const fixturePath = join(
-        __dirname,
-        '__fixtures__',
-        'valid-billing.xlsx',
-      );
+      const fixturePath = join(__dirname, '__fixtures__', 'valid-billing.xlsx');
       const buffer = readFileSync(fixturePath);
 
       const result = await importBillingHistory('user123', buffer, 'xlsx');
@@ -147,11 +139,7 @@ Valid item 2,2,200.00,2026-05-03`;
     });
 
     it('should handle invalid-dates.csv with partial import', async () => {
-      const fixturePath = join(
-        __dirname,
-        '__fixtures__',
-        'invalid-dates.csv',
-      );
+      const fixturePath = join(__dirname, '__fixtures__', 'invalid-dates.csv');
       const csv = readFileSync(fixturePath, 'utf-8');
 
       const result = await importBillingHistory('user123', csv, 'csv');
@@ -169,7 +157,7 @@ Valid item 2,2,200.00,2026-05-03`;
       const fixturePath = join(
         __dirname,
         '__fixtures__',
-        'missing-quantity.csv',
+        'missing-quantity.csv'
       );
       const csv = readFileSync(fixturePath, 'utf-8');
 
@@ -203,12 +191,8 @@ User2 Item,2,200.00,2026-05-02`;
       expect(user2Keys.length).toBe(1);
 
       // Verify items belong to correct users
-      const user1Item = await redis!.get<{ description: string }>(
-        user1Keys[0],
-      );
-      const user2Item = await redis!.get<{ description: string }>(
-        user2Keys[0],
-      );
+      const user1Item = await redis!.get<{ description: string }>(user1Keys[0]);
+      const user2Item = await redis!.get<{ description: string }>(user2Keys[0]);
 
       expect(user1Item?.description).toBe('User1 Item');
       expect(user2Item?.description).toBe('User2 Item');
@@ -279,7 +263,7 @@ Item 3,3,300.00,2026-05-03`;
 
       const keys = await redis!.keys('invoiceItem:user123:*');
       const items = await Promise.all(
-        keys.map((key) => redis!.get<{ itemID: string }>(key)),
+        keys.map((key) => redis!.get<{ itemID: string }>(key))
       );
 
       const itemIDs = items.map((item) => item!.itemID);

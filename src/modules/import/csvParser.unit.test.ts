@@ -21,14 +21,14 @@ Design work,2,1500.00,2026-05-02`;
         description: 'Web hosting',
         quantity: 1,
         rate: 1200.0,
-        date: '2026-05-01',
+        date: '2026-05-01'
       });
       expect(items[0].itemID).toBeDefined();
       expect(items[1]).toMatchObject({
         description: 'Design work',
         quantity: 2,
         rate: 1500.0,
-        date: '2026-05-02',
+        date: '2026-05-02'
       });
     });
 
@@ -41,7 +41,7 @@ Design work,2,1500.00,2026-05-02`;
 Web hosting,1`;
 
       await expect(parseCSV(csv)).rejects.toThrow(
-        'CSV missing required columns',
+        'CSV missing required columns'
       );
     });
 
@@ -163,11 +163,7 @@ Item,-1,-100.00,invalid-date`;
 
   describe('fixture file parsing', () => {
     it('should parse valid-billing.csv fixture', async () => {
-      const fixturePath = join(
-        __dirname,
-        '__fixtures__',
-        'valid-billing.csv',
-      );
+      const fixturePath = join(__dirname, '__fixtures__', 'valid-billing.csv');
       const csv = readFileSync(fixturePath, 'utf-8');
 
       const items = await parseCSV(csv);
@@ -183,11 +179,7 @@ Item,-1,-100.00,invalid-date`;
     });
 
     it('should handle invalid-dates.csv fixture', async () => {
-      const fixturePath = join(
-        __dirname,
-        '__fixtures__',
-        'invalid-dates.csv',
-      );
+      const fixturePath = join(__dirname, '__fixtures__', 'invalid-dates.csv');
       const csv = readFileSync(fixturePath, 'utf-8');
 
       const result = await parseCSVWithDetails(csv);
@@ -200,7 +192,7 @@ Item,-1,-100.00,invalid-date`;
       const fixturePath = join(
         __dirname,
         '__fixtures__',
-        'missing-quantity.csv',
+        'missing-quantity.csv'
       );
       const csv = readFileSync(fixturePath, 'utf-8');
 

@@ -1,7 +1,12 @@
 import { mockRedis } from '@/lib/__mocks__/redis';
 import { createUser, getUser, getUserByEmail } from './users';
 import { createInvoice, getInvoice, listInvoices } from './invoices';
-import { createReceipt, getReceipt, getReceiptByInvoiceID, listReceipts } from './receipts';
+import {
+  createReceipt,
+  getReceipt,
+  getReceiptByInvoiceID,
+  listReceipts
+} from './receipts';
 import { setCompanyConfig, getCompanyConfig } from './company';
 import { User } from '@/models/user';
 import { Invoice, InvoiceItem } from '@/models/invoice';
@@ -200,7 +205,10 @@ describe('database security tests', () => {
     });
 
     it('should not allow user1 to find user2 receipt by invoiceID', async () => {
-      const receipt = await getReceiptByInvoiceID(user1ID, user2Invoice.invoiceID);
+      const receipt = await getReceiptByInvoiceID(
+        user1ID,
+        user2Invoice.invoiceID
+      );
       expect(receipt).toBeNull();
     });
 

@@ -25,9 +25,12 @@ export default async function DashboardPage() {
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         {/* Welcome Header */}
         <div className="bg-white shadow rounded-lg p-8 mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to BillGen</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome to BillGen
+          </h1>
           <p className="text-lg text-gray-600">
-            Your company profile is set up. You're ready to create invoices and receipts.
+            Your company profile is set up. You're ready to create invoices and
+            receipts.
           </p>
         </div>
 
@@ -55,7 +58,9 @@ export default async function DashboardPage() {
                 </svg>
               </div>
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Create Invoice</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Create Invoice
+            </h2>
             <p className="text-gray-600">
               Generate professional invoices for your clients
             </p>
@@ -83,7 +88,9 @@ export default async function DashboardPage() {
                 </svg>
               </div>
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Generate Receipt</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Generate Receipt
+            </h2>
             <p className="text-gray-600">
               Create payment receipts from existing invoices
             </p>
@@ -111,7 +118,9 @@ export default async function DashboardPage() {
                 </svg>
               </div>
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Import Data</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Import Data
+            </h2>
             <p className="text-gray-600">
               Upload billing history from CSV or Excel files
             </p>
@@ -120,7 +129,9 @@ export default async function DashboardPage() {
 
         {/* Recent Activity Section (placeholder) */}
         <div className="mt-8 bg-white shadow rounded-lg p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Recent Activity</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Recent Activity
+          </h2>
           <p className="text-gray-600">
             Your recent invoices and receipts will appear here.
           </p>

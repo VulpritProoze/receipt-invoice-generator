@@ -236,19 +236,19 @@ describe('userSchema', () => {
 
   describe('missing fields', () => {
     it('rejects user missing userID', () => {
-      const { userID, ...incomplete } = validUser;
+      const { userID: _userID, ...incomplete } = validUser;
       const result = userSchema.safeParse(incomplete);
       expect(result.success).toBe(false);
     });
 
     it('rejects user missing username', () => {
-      const { username, ...incomplete } = validUser;
+      const { username: _username, ...incomplete } = validUser;
       const result = userSchema.safeParse(incomplete);
       expect(result.success).toBe(false);
     });
 
     it('rejects user missing creditCardNumber', () => {
-      const { creditCardNumber, ...incomplete } = validUser;
+      const { creditCardNumber: _creditCardNumber, ...incomplete } = validUser;
       const result = userSchema.safeParse(incomplete);
       expect(result.success).toBe(false);
     });
