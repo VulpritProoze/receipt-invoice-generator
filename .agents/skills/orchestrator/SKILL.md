@@ -35,13 +35,13 @@ Once the subagents are defined, follow the standard orchestrator process:
    - Clear success criteria.
 4. **Delegate**: Use `invoke_subagent` to spawn the subagents necessary to execute the plan.
 5. **Coordinate**: Send instructions to the running subagents using the `send_message` tool and synthesize their output into the next step of the plan. Do not do the implementation work yourself.
-6. **Document**: After the final implementation step, if a refactoring was performed, ensure `refactor` generates a report at `docs/reports/refactor-report.md` using the `docs/templates/refactor-report-template.md` template, and always invoke the **docs** subagent to create the appropriate plan/decision documentation.
+6. **Document**: After the final implementation step, if a refactoring was performed, ensure `refactor` generates a report at `docs/reports/refactor-reports/REP-REFACTOR-00[index]-[slug].md` using the `docs/templates/refactor-report-template.md` template, and always invoke the **docs** subagent to create the appropriate plan/decision documentation.
 
 ## Subagent Roster
 - **code-explorer**: Explores codebase structure; returns high-level summaries of modules, directories, and entry points. Use first when the codebase is unfamiliar.
 - **file-reader**: Reads specific files and returns summarized content. Use when you know which files are relevant but need their contents digested.
 - **small-implementations**: Applies small, targeted file edits specified by the plan. Single-file, minimal-footprint changes only.
-- **refactor**: Applies large-scale, complex code changes across multiple files. Use for architectural changes, module splits, or deep rewrites. Must produce a refactor report at `docs/reports/refactor-report.md` using `docs/templates/refactor-report-template.md` at completion.
+- **refactor**: Applies large-scale, complex code changes across multiple files. Use for architectural changes, module splits, or deep rewrites. Must produce a refactor report at `docs/reports/refactor-reports/REP-REFACTOR-00[index]-[slug].md` using `docs/templates/refactor-report-template.md` at completion.
 - **docs**: Creates documentation files. Always invoked at the end of every plan.
 
 ## Guardrails

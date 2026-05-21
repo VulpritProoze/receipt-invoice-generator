@@ -52,15 +52,15 @@ You operate as a subagent in a multi-agent system, spawned by the orchestrator. 
 
 9. **Look up the report template.** Before writing the refactor report, check `docs/templates/refactor-report-template.md` and use it as your structural guide. Fill it with the categories of changes, file links, and metrics.
 
-10. **Produce the refactor report.** Write the completed report to `docs/reports/refactor-report.md` using `docs/templates/refactor-report-template.md` as the template.
+10. **Produce the refactor report.** Determine the next available index by counting existing files in `docs/reports/refactor-reports/`. Write the completed report to `docs/reports/refactor-reports/REP-REFACTOR-00[index]-[slug].md` (e.g. `REP-REFACTOR-003-auth-module-split.md`) using `docs/templates/refactor-report-template.md` as the template.
 
 11. **Prompt the orchestrator.** After writing the report, output the following instruction as your closing message so the orchestrator knows what to do next:
 
-    > **@orchestrator** — Refactor complete. Please invoke `/docs` agent to create documentation from `docs/reports/refactor-report.md`.
+    > **@orchestrator** — Refactor complete. Please invoke `/docs` agent to create documentation from `docs/reports/refactor-reports/REP-REFACTOR-00[index]-[slug].md`.
 
 ## Output Format
 
-The refactor report is written to `docs/reports/refactor-report.md`. Its structure is determined by `docs/templates/refactor-report-template.md`.
+The refactor report is written to `docs/reports/refactor-reports/REP-REFACTOR-00[index]-[slug].md`. Its structure is determined by `docs/templates/refactor-report-template.md`.
 
 The report must always cover:
 - What was refactored and why.

@@ -68,7 +68,7 @@ You operate as the top-level agent in a multi-agent system. You receive natural 
    - `docs/plans/<task-name>.md` — for any completed plan, describing the steps taken and rationale.
    - `docs/decisions/<decision-name>.md` — if one or more significant decisions were made, one file per decision, following an ADR-style format (context, options considered, decision, consequences).
    - Both files if both apply.
-   - If a refactoring was completed by `refactor-agent`, verify that a refactor report was created at `docs/reports/refactor-report.md` using the `docs/templates/refactor-report-template.md` template.
+   - If a refactoring was completed by `refactor-agent`, verify that a refactor report was created at `docs/reports/refactor-reports/REP-REFACTOR-00[index]-[slug].md` using the `docs/templates/refactor-report-template.md` template.
 
 7. **Hand off.** Use the handoff buttons to delegate to the appropriate subagent. Pass the relevant portion of the plan — not the entire context — so subagents receive only what they need.
 
@@ -118,7 +118,7 @@ NEED MORE INFORMATION
 | `code-explorer` | Explores codebase structure; returns high-level summaries of modules, directories, and entry points. Use first when the codebase is unfamiliar. |
 | `file-reader` | Reads specific files and returns summarized content. Use when you know which files are relevant but need their contents digested. |
 | `implementation-agent` | Applies small, targeted file edits specified by the plan. Single-file, minimal-footprint changes only. |
-| `refactor-agent` | Applies large-scale, complex code changes across multiple files. Use for architectural changes, module splits, or deep rewrites. Must produce a refactor report at `docs/reports/refactor-report.md` using the template `docs/templates/refactor-report-template.md` at completion. |
+| `refactor-agent` | Applies large-scale, complex code changes across multiple files. Use for architectural changes, module splits, or deep rewrites. Must produce a refactor report at `docs/reports/refactor-reports/REP-REFACTOR-00[index]-[slug].md` using the template `docs/templates/refactor-report-template.md` at completion. |
 | `docs-agent` | Creates documentation files. Always invoked at the end of every plan to produce `docs/plans/` and/or `docs/decisions/` files. |
 
 ---

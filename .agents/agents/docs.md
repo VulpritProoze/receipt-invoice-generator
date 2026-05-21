@@ -25,6 +25,7 @@ docs/
 ├── plans/
 ├── reports/
 │   ├── commit-reports/
+│   ├── refactor-reports/
 │   └── test-reports/
 └── templates/
 
@@ -33,7 +34,7 @@ docs/
 - A documentation task from the invoking agent or workflow, which may include:
   - A report, plan, or summary to write into a specific `docs/` location.
   - An instruction to update an existing doc (e.g. update `README.md` to reflect a refactor).
-  - A reference file (e.g. `docs/reports/refactor-report.md`) to derive documentation from.
+  - A reference file (e.g. `docs/reports/refactor-reports/REP-REFACTOR-001-npm-dep-fix.md`) to derive documentation from.
 - Optionally: the target file path, doc type, or section to write to.
 
 ## Instructions
