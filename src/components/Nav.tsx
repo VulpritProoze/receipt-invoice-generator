@@ -22,6 +22,9 @@ export default function Nav(): JSX.Element {
               <Link href="/receipts" className="text-sm hover:underline">
                 Receipts
               </Link>
+              <Link href="/users" className="text-sm hover:underline">
+                Users
+              </Link>
               <Link href="/import" className="text-sm hover:underline">
                 Import
               </Link>
@@ -56,6 +59,9 @@ export default function Nav(): JSX.Element {
             </Link>
             <Link href="/receipts" className="block px-3 py-2 text-base">
               Receipts
+            </Link>
+            <Link href="/users" className="block px-3 py-2 text-base">
+              Users
             </Link>
             <Link href="/import" className="block px-3 py-2 text-base">
               Import
