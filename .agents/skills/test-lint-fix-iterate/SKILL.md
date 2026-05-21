@@ -1,13 +1,12 @@
----
 name: test-lint-fix-iterate
 description: Orchestrator-led loop that runs verification (lints and tests) using the tester subagent, and delegates fixes to small-implementations or refactor agents, iterating until the scoped modules are clean or capped at 5 cycles.
----
 
 # Test Lint Fix Iterate Skill
 
 You are acting as the Orchestrator. Your job is to orchestrate a controlled loop of: modular linting -> formatting -> modular testing -> repairing code -> verification. You think, plan, and delegate — never writing or editing code, and never running the verification commands directly. You delegate verification to the `tester` agent, and delegate fixes to either `small-implementations` or `refactor` agents.
 
 ## Step 1: Define Subagents
+
 Before planning or delegating, you must ensure the specialized subagents are defined for this conversation.
 
 1. Use the `view_file` tool to read the subagent definitions located in your workspace under `.agents/agents/`:
@@ -24,6 +23,7 @@ Before planning or delegating, you must ensure the specialized subagents are def
    - **enable_write_tools**: Set to `true` for `tester`, `small-implementations`, and `refactor`. Set to `false` for `code-explorer` and `file-reader`.
 
 ## Step 2: Determine Target Scope & Gather Context
+
 1. Identify which core module, component, or file range has changed or needs repair.
 2. Determine the exact path(s) to pass to `tester` for linting.
 3. Identify the specific unit/integration test files to target for testing.
@@ -34,6 +34,7 @@ Before planning or delegating, you must ensure the specialized subagents are def
    - Spawn the **code-explorer** subagent only if no relevant summary exists or if the existing summary is insufficient, in order to save tokens.
 
 ## Step 3: Run the Iterate Loop
+
 For up to a maximum of 5 cycles:
 
 1. **Lint Verification**:
@@ -62,24 +63,55 @@ For up to a maximum of 5 cycles:
    - If the same failure repeats twice, or you reach 5 cycles, stop and report the blocker.
 
 ## Step 4: Generate Test Report
+
 1. Create or update the test report under `docs/reports/test-reports/` using the template `docs/templates/test-report-template.md` (according to the `test` skill workflow).
 2. Assign the next sequential `REP-TEST-NNN` identifier by looking at existing files in `docs/reports/test-reports/`.
 3. Fill in run metadata, summary, failed tests (if any were encountered during the cycles, including their root causes and resolutions), coverage summary, and notes.
 
 ## Step 5: Finalize and Commit
+
 1. Once the scoped tests and lints are green and the test report is written, verify the final report is clean.
 2. Invoke `git-committer-atomic` skill to stage files and create clean, atomic commits for the resolved fixes and the test report.
 
-
 ## Subagent Roster
-- **code-explorer**: Explores codebase structure; returns high-level summaries of modules, directories, and entry points. Check `.agents/code-exploration/` for existing summaries first.
-- **file-reader**: Reads specific files and returns summarized content. Use when you know which files are relevant but need their contents digested.
-- **tester**: Executes modular, scoped tests or lints on specific parts of the program without running system-wide checks. Do not delegate code edits to this agent.
-- **small-implementations**: Applies small, targeted file edits specified by the plan. Single-file, minimal-footprint changes only.
-- **refactor**: Applies large-scale, complex code changes across multiple files.
 
 ## Guardrails
-- **Never write or edit code.** You are a planner and coordinator only.
-- **Never run commands directly.** Verification commands must run via the `tester` subagent.
-- **No system-wide checks.** Keep all commands scoped to the changed or target files/folders.
-- **Provide narrow context.** Pass only the relevant failing test logs and files to the repairing subagent.
+
+## 1. Scope the change
+
+- Identify the touched files and module boundary from the current diff, existing summaries, or failure context.
+- Prefer existing session summaries or handoff notes first.
+- Use file-reader or code-explorer only if the touched slice is still unclear.
+- Do not define subagents inside this skill.
+
+## 2. Pick the smallest useful check
+
+- Use narrow lint and test commands that match the touched file or module.
+- Avoid system-wide checks unless a failure cannot be isolated.
+
+## 3. Run the loop in one of two modes
+
+### End of session
+
+- Run changed-file or module-scoped lint, plus only the tests that directly cover the touched slice.
+- Keep the failure context short and local.
+- After one repair pass, stop if the same slice fails again.
+
+### End of day
+
+- Run the end-of-session checks first.
+- Then widen to adjacent integration, contract, and security coverage for the same feature area.
+- Generate a report only for this broader handoff run.
+
+## Repair mode
+
+- Pass the exact failing file, command, and log fragment.
+- Prefer one-file fixes when possible.
+- Rerun the same scoped check immediately after the fix.
+- Stop after the same failure repeats twice.
+
+## Guardrails
+
+- No direct command execution in this skill.
+- No broad context gathering unless it is needed to narrow the touched slice.
+- No mandatory full test report or git-committer step in the default workflow.
