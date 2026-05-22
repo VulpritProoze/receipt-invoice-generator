@@ -17,6 +17,7 @@ export default function InvoiceDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isGeneratingReceipt, setIsGeneratingReceipt] = useState(false);
 
   useEffect(() => {
     async function fetchInvoice() {
@@ -62,6 +63,44 @@ export default function InvoiceDetailPage() {
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to delete invoice');
       setIsDeleting(false);
+    }
+  };
+
+  const handleGenerateReceipt = async () => {
+    if (!user || !invoice) return;
+
+    const subtotal = invoice.invoiceItems.reduce(
+      (sum, item) => sum + item.quantity * item.rate,
+      0
+    );
+    const taxAmount = subtotal * invoice.taxRate;
+    const computedTotal = subtotal + taxAmount;
+
+    setIsGeneratingReceipt(true);
+    try {
+      const response = await fetch('/api/receipts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          date: new Date().toISOString().split('T')[0],
+          invoiceID: invoice.invoiceID,
+          invoiceItems: invoice.invoiceItems,
+          total: computedTotal,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate receipt');
+      }
+
+      alert('Receipt generated successfully!');
+      router.push('/receipts');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to generate receipt');
+    } finally {
+      setIsGeneratingReceipt(false);
     }
   };
 
@@ -129,6 +168,9 @@ export default function InvoiceDetailPage() {
           </Button>
           <Button onClick={handleGeneratePDF} variant="secondary">
             Generate PDF
+          </Button>
+          <Button onClick={handleGenerateReceipt} disabled={isGeneratingReceipt}>
+            {isGeneratingReceipt ? 'Generating...' : 'Generate Receipt'}
           </Button>
           <Button onClick={() => router.push('/invoices')} variant="secondary">
             Back to Invoices
