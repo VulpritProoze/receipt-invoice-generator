@@ -34,7 +34,8 @@ export async function exportInvoicesToPDF(invoices: Invoice[]): Promise<Buffer> 
         doc.text(`Date: ${invoice.invoiceDate} | Due Date: ${invoice.dueDate || 'N/A'}`);
         doc.text(`Bill To: ${invoice.billTo}`);
         doc.text(`Currency: ${invoice.currency}`);
-        doc.text(`Total: ${total.toFixed(2)} ${invoice.currency}`, { bold: true });
+        doc.font('Helvetica-Bold').text(`Total: ${total.toFixed(2)} ${invoice.currency}`);
+        doc.font('Helvetica');
         
         doc.moveDown(1.5);
         
@@ -76,7 +77,8 @@ export async function exportReceiptsToPDF(receipts: Receipt[]): Promise<Buffer> 
         doc.text(`Date: ${receipt.date}`);
         doc.text(`Invoice ID: ${receipt.invoiceID || 'N/A'}`);
         doc.text(`Account Billed: ${receipt.accountBilled}`);
-        doc.text(`Total: ${receipt.total.toFixed(2)}`, { bold: true });
+        doc.font('Helvetica-Bold').text(`Total: ${receipt.total.toFixed(2)}`);
+        doc.font('Helvetica');
         
         doc.moveDown(1.5);
         

@@ -79,7 +79,7 @@ export default function EditInvoicePage() {
         // Additionally, we might need to add the invoice's existing items to `availableItems`
         // if they are not already returned by `/api/invoices/items`.
         // We'll merge them by itemID to ensure they show up in the table.
-        const existingItemMap = new Map(itemsList.map((item: InvoiceItem) => [item.itemID, item]));
+        const existingItemMap = new Map<string, InvoiceItem>(itemsList.map((item: InvoiceItem) => [item.itemID, item]));
         if (invoiceData.invoiceItems) {
           invoiceData.invoiceItems.forEach((item: InvoiceItem) => {
             if (!existingItemMap.has(item.itemID)) {

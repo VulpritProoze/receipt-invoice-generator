@@ -103,7 +103,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Return file as downloadable response
-    return new NextResponse(fileContent, {
+    return new NextResponse(fileContent as any, {
       status: 200,
       headers: {
         'Content-Type': contentType,

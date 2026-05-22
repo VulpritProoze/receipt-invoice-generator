@@ -3,13 +3,14 @@ import React from 'react';
 type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   className?: string;
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'outline';
 };
 
 export default function Button({ children, className = '', variant = 'primary', ...rest }: Props) {
   const variantClasses = {
     primary: 'bg-blue-600 text-white hover:bg-blue-700',
-    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
+    outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
   };
 
   return (
