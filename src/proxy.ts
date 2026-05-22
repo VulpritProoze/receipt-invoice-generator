@@ -1,9 +1,12 @@
-import { NextRequest, NextFetchEvent } from "next/server";
-import nextAuthMiddleware, { NextRequestWithAuth } from "next-auth/middleware";
+import { withAuth } from "next-auth/middleware";
 
-export default function proxy(req: NextRequest, event: NextFetchEvent) {
-  return nextAuthMiddleware(req as NextRequestWithAuth, event);
-}
+export default withAuth({
+  pages: {
+    // Explicitly set sign-in page so the middleware constructs the correct
+    // redirect URL without doubling the domain (NEXTAUTH_URL + absolute path bug).
+    signIn: "/auth/signin",
+  },
+});
 
 export const config = {
   matcher: [
@@ -14,6 +17,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    "/((?!api/auth|_next/static|_next/image|favicon.ico).*)",
+    "/((?!api/auth|auth/signin|_next/static|_next/image|favicon.ico|\\.well-known).*)",
   ],
 };
