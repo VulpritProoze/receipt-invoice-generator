@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { registerUser, findUserByEmail } from '@/modules/users/userService';
+import { registerUser, findUserByEmail, getUserProfile } from '@/modules/users/userService';
+import { getCurrentUserId } from '@/lib/auth';
 
 /**
  * POST /api/users - Create a new user
@@ -86,10 +87,13 @@ export async function GET(req: NextRequest) {
     const email = searchParams.get('email');
 
     if (!email) {
-      return NextResponse.json(
-        { error: 'Email query parameter is required' },
-        { status: 400 }
-      );
+      const userID = await getCurrentUserId();
+      if (!userID) {
+        return NextResponse.json({ users: [] }, { status: 200 });
+      }
+      
+      const user = await getUserProfile(userID);
+      return NextResponse.json({ users: user ? [user] : [] }, { status: 200 });
     }
 
     const user = await findUserByEmail(email);

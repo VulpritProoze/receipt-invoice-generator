@@ -5,6 +5,8 @@ import {
 } from '@/modules/invoices/invoiceService';
 import { invoiceCreateRequestSchema } from '@/schemas';
 
+import { getCurrentUserId } from '@/lib/auth';
+
 /**
  * POST /api/invoices - Create a new invoice
  * Request body: Invoice data without invoiceID (will be generated)
@@ -13,9 +15,13 @@ import { invoiceCreateRequestSchema } from '@/schemas';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const userID = (await getCurrentUserId()) || body.userID || 'demo-user-001';
 
     // Validate request body using centralized schema
-    const result = invoiceCreateRequestSchema.safeParse(body);
+    const result = invoiceCreateRequestSchema.safeParse({
+      ...body,
+      userID
+    });
 
     if (!result.success) {
       return NextResponse.json(
@@ -72,18 +78,19 @@ export async function POST(req: NextRequest) {
 
 /**
  * GET /api/invoices?userID=xxx - List all invoices for a user
- * Query params: userID (required)
+ * Query params: userID (optional if authenticated)
  * Response: 200 with array of invoices, or 400/500 on error
  */
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const userID = searchParams.get('userID');
+    const queryUserID = searchParams.get('userID');
+    const userID = (await getCurrentUserId()) || queryUserID;
 
     if (!userID) {
       return NextResponse.json(
-        { error: 'userID query parameter is required' },
-        { status: 400 }
+        { error: 'User must be authenticated' },
+        { status: 401 }
       );
     }
 

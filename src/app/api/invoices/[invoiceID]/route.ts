@@ -5,10 +5,12 @@ import {
   deleteInvoice
 } from '@/modules/invoices/invoiceService';
 
+import { getCurrentUserId } from '@/lib/auth';
+
 /**
  * GET /api/invoices/[invoiceID]?userID=xxx - Get invoice by ID
- * Query params: userID (required)
- * Response: 200 with invoice, 404 if not found, 400 if userID missing, or 500 on error
+ * Query params: userID (optional if authenticated)
+ * Response: 200 with invoice, 404 if not found, 401 if unauthenticated, or 500 on error
  */
 export async function GET(
   req: NextRequest,
@@ -17,12 +19,13 @@ export async function GET(
   try {
     const { invoiceID } = await params;
     const { searchParams } = new URL(req.url);
-    const userID = searchParams.get('userID');
+    const queryUserID = searchParams.get('userID');
+    const userID = (await getCurrentUserId()) || queryUserID;
 
     if (!userID) {
       return NextResponse.json(
-        { error: 'userID query parameter is required' },
-        { status: 400 }
+        { error: 'User must be authenticated' },
+        { status: 401 }
       );
     }
 
@@ -47,7 +50,7 @@ export async function GET(
 
 /**
  * PATCH /api/invoices/[invoiceID]?userID=xxx - Update invoice
- * Query params: userID (required)
+ * Query params: userID (optional if authenticated)
  * Request body: Partial invoice data (fields to update)
  * Response: 200 with updated invoice, 404 if not found, 400 on validation error, or 500 on error
  */
@@ -58,12 +61,13 @@ export async function PATCH(
   try {
     const { invoiceID } = await params;
     const { searchParams } = new URL(req.url);
-    const userID = searchParams.get('userID');
+    const queryUserID = searchParams.get('userID');
+    const userID = (await getCurrentUserId()) || queryUserID;
 
     if (!userID) {
       return NextResponse.json(
-        { error: 'userID query parameter is required' },
-        { status: 400 }
+        { error: 'User must be authenticated' },
+        { status: 401 }
       );
     }
 
@@ -112,8 +116,8 @@ export async function PATCH(
 
 /**
  * DELETE /api/invoices/[invoiceID]?userID=xxx - Delete invoice
- * Query params: userID (required)
- * Response: 200 on success, 400 if userID missing, or 500 on error
+ * Query params: userID (optional if authenticated)
+ * Response: 200 on success, 401 if unauthenticated, or 500 on error
  */
 export async function DELETE(
   req: NextRequest,
@@ -122,12 +126,13 @@ export async function DELETE(
   try {
     const { invoiceID } = await params;
     const { searchParams } = new URL(req.url);
-    const userID = searchParams.get('userID');
+    const queryUserID = searchParams.get('userID');
+    const userID = (await getCurrentUserId()) || queryUserID;
 
     if (!userID) {
       return NextResponse.json(
-        { error: 'userID query parameter is required' },
-        { status: 400 }
+        { error: 'User must be authenticated' },
+        { status: 401 }
       );
     }
 

@@ -5,11 +5,13 @@ import { useRouter, useParams } from 'next/navigation';
 import Container from '@/components/Container';
 import Button from '@/components/Button';
 import type { Invoice } from '@/schemas';
+import { useAuth } from '@/providers/auth-provider';
 
 export default function InvoiceDetailPage() {
   const router = useRouter();
   const params = useParams();
   const invoiceID = params.id as string;
+  const { user } = useAuth();
 
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
@@ -17,8 +19,9 @@ export default function InvoiceDetailPage() {
 
   useEffect(() => {
     async function fetchInvoice() {
+      if (!user) return;
       try {
-        const response = await fetch(`/api/invoices/${invoiceID}`);
+        const response = await fetch(`/api/invoices/${invoiceID}?userID=${user.id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch invoice');
         }
@@ -31,10 +34,10 @@ export default function InvoiceDetailPage() {
       }
     }
 
-    if (invoiceID) {
+    if (invoiceID && user) {
       fetchInvoice();
     }
-  }, [invoiceID]);
+  }, [invoiceID, user]);
 
   const handleGeneratePDF = async () => {
     try {
