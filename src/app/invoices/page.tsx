@@ -53,6 +53,11 @@ export default function InvoicesPage() {
     dueDate: invoice.dueDate
   }));
 
+  const handleExport = (format: 'csv' | 'xlsx' | 'pdf') => {
+    if (!user) return;
+    window.location.href = `/api/reports/generate?type=invoice&userID=${user.id}&format=${format}`;
+  };
+
   if (loading) {
     return (
       <Container>
@@ -75,11 +80,22 @@ export default function InvoicesPage() {
 
   return (
     <Container>
-      <div className="mb-6 flex justify-between items-center">
+      <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold text-gray-900">Invoices</h1>
-        <Button onClick={() => router.push('/invoices/new')}>
-          Create Invoice
-        </Button>
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={() => handleExport('csv')}>
+            Export CSV
+          </Button>
+          <Button variant="outline" onClick={() => handleExport('xlsx')}>
+            Export XLSX
+          </Button>
+          <Button variant="outline" onClick={() => handleExport('pdf')}>
+            Export PDF
+          </Button>
+          <Button onClick={() => router.push('/invoices/new')}>
+            Create Invoice
+          </Button>
+        </div>
       </div>
 
       <Table

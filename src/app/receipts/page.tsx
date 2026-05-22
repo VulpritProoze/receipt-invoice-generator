@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Container from '@/components/Container';
+import Button from '@/components/Button';
 import Table, { type TableColumn } from '@/components/ui/Table';
 import { useAuth } from '@/providers/auth-provider';
 import type { Receipt } from '@/schemas';
@@ -50,6 +51,11 @@ export default function ReceiptsPage() {
     total: `$${receipt.total.toFixed(2)}`
   }));
 
+  const handleExport = (format: 'csv' | 'xlsx' | 'pdf') => {
+    if (!user) return;
+    window.location.href = `/api/reports/generate?type=receipt&userID=${user.id}&format=${format}`;
+  };
+
   if (loading) {
     return (
       <Container>
@@ -72,8 +78,19 @@ export default function ReceiptsPage() {
 
   return (
     <Container>
-      <div className="mb-6">
+      <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold text-gray-900">Receipts</h1>
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={() => handleExport('csv')}>
+            Export CSV
+          </Button>
+          <Button variant="outline" onClick={() => handleExport('xlsx')}>
+            Export XLSX
+          </Button>
+          <Button variant="outline" onClick={() => handleExport('pdf')}>
+            Export PDF
+          </Button>
+        </div>
       </div>
 
       <Table

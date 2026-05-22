@@ -25,6 +25,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateReceiptReport } from '@/modules/reports/reportService';
 
+import { getCurrentUserId } from '@/lib/auth';
+
 // Force Node.js runtime for PDFKit compatibility
 export const runtime = 'nodejs';
 
@@ -35,13 +37,14 @@ export async function GET(
   try {
     const { receiptID } = await params;
     const { searchParams } = new URL(request.url);
-    const userID = searchParams.get('userID');
+    const queryUserID = searchParams.get('userID');
+    const userID = (await getCurrentUserId()) || queryUserID;
 
     // Validate required parameters
     if (!userID) {
       return NextResponse.json(
-        { error: 'userID query parameter is required' },
-        { status: 400 }
+        { error: 'User must be authenticated' },
+        { status: 401 }
       );
     }
 
