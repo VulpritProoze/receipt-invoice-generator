@@ -16,6 +16,7 @@ export default function InvoiceDetailPage() {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     async function fetchInvoice() {
@@ -38,6 +39,31 @@ export default function InvoiceDetailPage() {
       fetchInvoice();
     }
   }, [invoiceID, user]);
+
+  const handleDelete = async () => {
+    if (!user) {
+      alert('You must be logged in to delete an invoice.');
+      return;
+    }
+    
+    if (!window.confirm('Are you sure you want to delete this invoice?')) {
+      return;
+    }
+    
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/invoices/${invoiceID}?userID=${user.id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete invoice');
+      }
+      router.push('/invoices');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to delete invoice');
+      setIsDeleting(false);
+    }
+  };
 
   const handleGeneratePDF = async () => {
     try {
@@ -95,7 +121,15 @@ export default function InvoiceDetailPage() {
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Invoice Details</h1>
         <div className="space-x-2">
-          <Button onClick={handleGeneratePDF}>Generate PDF</Button>
+          <Button onClick={() => router.push(`/invoices/${invoiceID}/edit`)} variant="secondary">
+            Edit Invoice
+          </Button>
+          <Button onClick={handleDelete} variant="secondary" className="!bg-red-100 !text-red-700 hover:!bg-red-200" disabled={isDeleting}>
+            {isDeleting ? 'Deleting...' : 'Delete Invoice'}
+          </Button>
+          <Button onClick={handleGeneratePDF} variant="secondary">
+            Generate PDF
+          </Button>
           <Button onClick={() => router.push('/invoices')} variant="secondary">
             Back to Invoices
           </Button>
