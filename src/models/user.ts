@@ -8,7 +8,7 @@ const maskedCreditCardSchema = z
   );
 
 export const userSchema = z.object({
-  userID: z.string().uuid('User ID must be a valid UUID'),
+  userID: z.string().min(1, 'User ID is required').max(100, 'User ID must not exceed 100 characters'),
   username: z
     .string()
     .min(1, 'Username is required')

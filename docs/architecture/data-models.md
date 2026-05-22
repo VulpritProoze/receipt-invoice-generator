@@ -17,6 +17,10 @@ changelog:
   date: 2026-05-20
   author: Copilot
   note: Initial draft
+- version: 1.0.1
+  date: 2026-05-22
+  author: Antigravity
+  note: Updated User model to remove UUID constraint on userID for legacy auth compatibility.
 
 ---
 
@@ -30,6 +34,7 @@ The application uses four primary records: `User`, `Invoice`, `Receipt`, and `Co
 
 - Stores identity, contact information, and masked card details.
 - `creditCardNumber` is masked before persistence and must never be stored raw.
+- `userID` accepts strings of 1-100 characters to support both UUIDs and legacy string identifiers (e.g., `demo-user-001`, `admin@example.com`).
 
 ### Invoice
 

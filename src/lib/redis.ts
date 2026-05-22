@@ -220,6 +220,7 @@ export class RedisClient {
  * Null in test environments where env vars are not set.
  */
 export const redis =
+  process.env.USE_REDIS === 'true' &&
   typeof process.env.UPSTASH_REDIS_REST_URL === 'string' &&
   typeof process.env.UPSTASH_REDIS_REST_TOKEN === 'string'
     ? new RedisClient(createRedisClient())
