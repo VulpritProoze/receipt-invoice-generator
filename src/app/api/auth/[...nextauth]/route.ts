@@ -19,7 +19,7 @@ export const authOptions: NextAuthOptions = {
           credentials.password === process.env.ADMIN_PASSWORD
         ) {
           return {
-            id: 'admin',
+            id: 'demo-user-001',
             name: 'Admin User',
             email: 'admin@example.com'
           };
@@ -30,6 +30,20 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: 'jwt'
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user && token.id) {
+        (session.user as any).id = token.id;
+      }
+      return session;
+    }
   },
   pages: {
     // defaults

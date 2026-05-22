@@ -13,28 +13,27 @@
  * - Implement proper error handling for invalid/expired tokens
  */
 
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+
 /**
  * Get the current authenticated user's ID
  * 
  * @returns User ID string, or null if not authenticated
- * 
- * Current implementation: Always returns demo user ID
- * 
- * TODO: Implement real session validation:
- * ```typescript
- * import { getServerSession } from 'next-auth';
- * import { authOptions } from '@/app/api/auth/[...nextauth]/route';
- * 
- * export async function getCurrentUserId(): Promise<string | null> {
- *   const session = await getServerSession(authOptions);
- *   return session?.user?.id ?? null;
- * }
- * ```
  */
 export async function getCurrentUserId(): Promise<string | null> {
-  // Demo implementation - always returns demo user
-  // In production, this would validate session/JWT and return real user ID
-  return 'demo-user-001';
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return null;
+  
+  // @ts-ignore NextAuth session.user may not have an id by default without extending the types
+  const userId = session.user.id || session.user.email || 'unknown';
+  
+  // Single-tenant fallback: map admin emails/legacy IDs to the default demo user
+  if (userId === 'admin@example.com' || userId === 'admin') {
+    return 'demo-user-001';
+  }
+  
+  return userId;
 }
 
 /**
@@ -45,20 +44,18 @@ export async function getCurrentUserId(): Promise<string | null> {
  * TODO: Implement real session validation
  */
 export async function getCurrentUserEmail(): Promise<string | null> {
-  // Demo implementation
-  return 'demo@example.com';
+  const session = await getServerSession(authOptions);
+  return session?.user?.email ?? null;
 }
 
 /**
  * Check if a request is authenticated
  * 
  * @returns true if authenticated, false otherwise
- * 
- * TODO: Implement real authentication check
  */
 export async function isAuthenticated(): Promise<boolean> {
-  // Demo implementation - always authenticated
-  return true;
+  const session = await getServerSession(authOptions);
+  return !!session?.user;
 }
 
 /**
