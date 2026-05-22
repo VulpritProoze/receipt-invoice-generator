@@ -1,9 +1,13 @@
 import { withAuth } from "next-auth/middleware";
 
 export default withAuth({
+  // Explicitly pass the secret — withAuth's implicit env resolution can silently
+  // fail in Vercel's Node.js middleware runtime, causing getToken() to reject
+  // all sessions even when NEXTAUTH_SECRET is set in the environment.
+  secret: process.env.NEXTAUTH_SECRET,
   pages: {
-    // Explicitly set sign-in page so the middleware constructs the correct
-    // redirect URL without doubling the domain (NEXTAUTH_URL + absolute path bug).
+    // Explicit sign-in path prevents the doubled-domain redirect URL bug
+    // when NEXTAUTH_URL is set (absolute URL treated as a path segment).
     signIn: "/auth/signin",
   },
 });

@@ -1,12 +1,11 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useState, FormEvent, Suspense } from 'react';
 
 function SignInForm() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const callbackUrl = searchParams.get('callbackUrl') ?? '/';
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,10 +27,13 @@ function SignInForm() {
     if (result?.error) {
       setError('Invalid username or password. Please try again.');
     } else {
-      router.push(callbackUrl);
-      router.refresh();
+      // Hard navigation ensures the session cookie is fully committed before
+      // the middleware evaluates the next request. router.push can race and
+      // send requests before the Set-Cookie header is processed by the browser.
+      window.location.href = callbackUrl;
     }
   }
+
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.08),_transparent_45%),linear-gradient(180deg,_#f8fafc_0%,_#ffffff_100%)] flex items-center justify-center px-4 py-16 text-slate-900">
