@@ -1,6 +1,6 @@
 import { redis } from '@/lib/redis';
 import { Receipt, receiptSchema } from '@/models/receipt';
-import * as sqliteReceipts from './sqlite/receipts';
+// SQLite is loaded lazily (dynamic import) so it is never evaluated when USE_REDIS=true
 
 /**
  * Database operations for Receipt entities.
@@ -39,6 +39,7 @@ export async function createReceipt(
       validated.receiptID
     );
   } else {
+    const sqliteReceipts = await import('./sqlite/receipts');
     return sqliteReceipts.createReceipt(userID, receipt);
   }
 }
@@ -72,6 +73,7 @@ export async function getReceipt(
       );
     }
   } else {
+    const sqliteReceipts = await import('./sqlite/receipts');
     return sqliteReceipts.getReceipt(userID, receiptID);
   }
 }
@@ -101,6 +103,7 @@ export async function getReceiptByInvoiceID(
     // Retrieve receipt by ID
     return getReceipt(userID, receiptID);
   } else {
+    const sqliteReceipts = await import('./sqlite/receipts');
     return sqliteReceipts.getReceiptByInvoiceID(userID, invoiceID);
   }
 }
@@ -142,6 +145,7 @@ export async function listReceipts(userID: string): Promise<Receipt[]> {
     // Sort by createdAt descending (newest first)
     return receipts.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   } else {
+    const sqliteReceipts = await import('./sqlite/receipts');
     return sqliteReceipts.listReceipts(userID);
   }
 }
@@ -172,6 +176,7 @@ export async function deleteReceipt(
     // Delete receipt data
     await redis.del(`receipt:${userID}:${receiptID}`);
   } else {
+    const sqliteReceipts = await import('./sqlite/receipts');
     return sqliteReceipts.deleteReceipt(userID, receiptID);
   }
 }

@@ -1,6 +1,6 @@
 import { redis } from '@/lib/redis';
 import { User, userSchema } from '@/models/user';
-import * as sqliteUsers from './sqlite/users';
+// SQLite is loaded lazily (dynamic import) so it is never evaluated when USE_REDIS=true
 
 /**
  * Database operations for User entities.
@@ -28,6 +28,7 @@ export async function createUser(user: User): Promise<void> {
     // Create email index for getUserByEmail
     await redis.set(`user:email:${validated.userEmail}`, validated.userID);
   } else {
+    const sqliteUsers = await import('./sqlite/users');
     return sqliteUsers.createUser(user);
   }
 }
@@ -58,6 +59,7 @@ export async function getUser(userID: string): Promise<User | null> {
       );
     }
   } else {
+    const sqliteUsers = await import('./sqlite/users');
     return sqliteUsers.getUser(userID);
   }
 }
@@ -99,6 +101,7 @@ export async function updateUser(
     // Store updated user
     await redis.set(`user:${userID}`, validated);
   } else {
+    const sqliteUsers = await import('./sqlite/users');
     return sqliteUsers.updateUser(userID, updates);
   }
 }
@@ -126,6 +129,7 @@ export async function deleteUser(userID: string): Promise<void> {
     // Delete user data
     await redis.del(`user:${userID}`);
   } else {
+    const sqliteUsers = await import('./sqlite/users');
     return sqliteUsers.deleteUser(userID);
   }
 }
@@ -150,6 +154,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
     // Retrieve user by ID
     return getUser(userID);
   } else {
+    const sqliteUsers = await import('./sqlite/users');
     return sqliteUsers.getUserByEmail(email);
   }
 }

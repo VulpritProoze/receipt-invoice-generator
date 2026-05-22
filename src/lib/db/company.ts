@@ -1,6 +1,6 @@
 import { redis } from '@/lib/redis';
 import { CompanyConfig, companyConfigSchema } from '@/models/company';
-import * as sqliteCompany from './sqlite/company';
+// SQLite is loaded lazily (dynamic import) so it is never evaluated when USE_REDIS=true
 
 /**
  * Database operations for CompanyConfig entities.
@@ -28,6 +28,7 @@ export async function setCompanyConfig(
     // Store company config
     await redis.set(`company:${userID}`, validated);
   } else {
+    const sqliteCompany = await import('./sqlite/company');
     return sqliteCompany.setCompanyConfig(userID, config);
   }
 }
@@ -60,6 +61,7 @@ export async function getCompanyConfig(
       );
     }
   } else {
+    const sqliteCompany = await import('./sqlite/company');
     return sqliteCompany.getCompanyConfig(userID);
   }
 }
@@ -93,6 +95,7 @@ export async function updateCompanyConfig(
     // Store updated config
     await redis.set(`company:${userID}`, validated);
   } else {
+    const sqliteCompany = await import('./sqlite/company');
     return sqliteCompany.updateCompanyConfig(userID, updates);
   }
 }

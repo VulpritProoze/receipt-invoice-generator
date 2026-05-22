@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Next.js Instrumentation Hook
  *
@@ -14,7 +15,11 @@
 function mask(value: string | undefined, visible = 4): string {
   if (!value) return '(not set)';
   if (value.length <= visible) return '****';
-  return value.slice(0, visible) + '*'.repeat(Math.min(value.length - visible, 8)) + '…';
+  return (
+    value.slice(0, visible) +
+    '*'.repeat(Math.min(value.length - visible, 8)) +
+    '…'
+  );
 }
 
 function present(value: string | undefined): string {
@@ -39,11 +44,17 @@ export async function register() {
   console.log('║          BillGen — Runtime Environment Check         ║');
   console.log('╚══════════════════════════════════════════════════════╝');
   console.log(`  NODE_ENV            : ${nodeEnv ?? '(not set)'}`);
-  console.log(`  NEXT_RUNTIME        : ${process.env.NEXT_RUNTIME ?? 'nodejs'}`);
+  console.log(
+    `  NEXT_RUNTIME        : ${process.env.NEXT_RUNTIME ?? 'nodejs'}`
+  );
   console.log('');
   console.log('  — Database —');
-  console.log(`  USE_REDIS           : ${useRedis ?? '(not set)'} ${useRedis === 'true' ? '← Redis mode' : '← SQLite mode'}`);
-  console.log(`  UPSTASH_REDIS_URL   : ${redisUrl ? redisUrl.replace(/\/\/.*@/, '//***@') : '(not set)'}`);
+  console.log(
+    `  USE_REDIS           : ${useRedis ?? '(not set)'} ${useRedis === 'true' ? '← Redis mode' : '← SQLite mode'}`
+  );
+  console.log(
+    `  UPSTASH_REDIS_URL   : ${redisUrl ? redisUrl.replace(/\/\/.*@/, '//***@') : '(not set)'}`
+  );
   console.log(`  UPSTASH_REDIS_TOKEN : ${mask(redisToken)}`);
   console.log('');
   console.log('  — Auth —');
@@ -58,18 +69,26 @@ export async function register() {
     console.warn(
       '⚠️  USE_REDIS=true but UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN is missing!'
     );
-    console.warn('   All data operations will fail. Add the missing vars in Vercel → Settings → Environment Variables.');
+    console.warn(
+      '   All data operations will fail. Add the missing vars in Vercel → Settings → Environment Variables.'
+    );
   }
 
   if (!nextAuthSecret) {
-    console.warn('⚠️  NEXTAUTH_SECRET is not set — authentication will fail in production!');
+    console.warn(
+      '⚠️  NEXTAUTH_SECRET is not set — authentication will fail in production!'
+    );
   }
 
   if (!adminEmail || !adminPassword) {
-    console.warn('⚠️  ADMIN_EMAIL or ADMIN_PASSWORD is not set — login will be impossible!');
+    console.warn(
+      '⚠️  ADMIN_EMAIL or ADMIN_PASSWORD is not set — login will be impossible!'
+    );
   }
 
-  console.log(`  ${present(useRedis)} USE_REDIS | ${present(redisUrl)} REDIS_URL | ${present(redisToken)} REDIS_TOKEN | ${present(nextAuthSecret)} NEXTAUTH_SECRET`);
+  console.log(
+    `  ${present(useRedis)} USE_REDIS | ${present(redisUrl)} REDIS_URL | ${present(redisToken)} REDIS_TOKEN | ${present(nextAuthSecret)} NEXTAUTH_SECRET`
+  );
   console.log('══════════════════════════════════════════════════════════');
   console.log('');
 }

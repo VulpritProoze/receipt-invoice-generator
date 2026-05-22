@@ -5,7 +5,7 @@ import {
   InvoiceItem,
   invoiceItemSchema
 } from '@/models/invoice';
-import * as sqliteInvoices from './sqlite/invoices';
+// SQLite is loaded lazily (dynamic import) so it is never evaluated when USE_REDIS=true
 
 /**
  * Database operations for Invoice entities.
@@ -40,6 +40,7 @@ export async function createInvoice(
     // Store invoice data
     await redis.set(`invoice:${userID}:${validated.invoiceID}`, validated);
   } else {
+    const sqliteInvoices = await import('./sqlite/invoices');
     return sqliteInvoices.createInvoice(userID, invoice);
   }
 }
@@ -73,6 +74,7 @@ export async function getInvoice(
       );
     }
   } else {
+    const sqliteInvoices = await import('./sqlite/invoices');
     return sqliteInvoices.getInvoice(userID, invoiceID);
   }
 }
@@ -117,6 +119,7 @@ export async function updateInvoice(
     // Store updated invoice
     await redis.set(`invoice:${userID}:${invoiceID}`, validated);
   } else {
+    const sqliteInvoices = await import('./sqlite/invoices');
     return sqliteInvoices.updateInvoice(userID, invoiceID, updates);
   }
 }
@@ -136,6 +139,7 @@ export async function deleteInvoice(
     // Delete invoice data - idempotent operation
     await redis.del(`invoice:${userID}:${invoiceID}`);
   } else {
+    const sqliteInvoices = await import('./sqlite/invoices');
     return sqliteInvoices.deleteInvoice(userID, invoiceID);
   }
 }
@@ -177,6 +181,7 @@ export async function listInvoices(userID: string): Promise<Invoice[]> {
     // Sort by createdAt descending (newest first)
     return invoices.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   } else {
+    const sqliteInvoices = await import('./sqlite/invoices');
     return sqliteInvoices.listInvoices(userID);
   }
 }
@@ -196,6 +201,7 @@ export async function getNextInvoiceSequence(userID: string): Promise<number> {
 
     return sequence;
   } else {
+    const sqliteInvoices = await import('./sqlite/invoices');
     return sqliteInvoices.getNextInvoiceSequence(userID);
   }
 }
@@ -219,6 +225,7 @@ export async function createInvoiceItem(
     // Store invoice item data
     await redis.set(`invoiceItem:${userID}:${validated.itemID}`, validated);
   } else {
+    const sqliteInvoices = await import('./sqlite/invoices');
     return sqliteInvoices.createInvoiceItem(userID, item);
   }
 }
@@ -252,6 +259,7 @@ export async function getInvoiceItem(
       );
     }
   } else {
+    const sqliteInvoices = await import('./sqlite/invoices');
     return sqliteInvoices.getInvoiceItem(userID, itemID);
   }
 }
@@ -294,6 +302,7 @@ export async function listInvoiceItems(userID: string): Promise<InvoiceItem[]> {
     // Sort by date descending (newest first)
     return items.sort((a, b) => b.date.localeCompare(a.date));
   } else {
+    const sqliteInvoices = await import('./sqlite/invoices');
     return sqliteInvoices.listInvoiceItems(userID);
   }
 }
@@ -313,6 +322,7 @@ export async function deleteInvoiceItem(
     // Delete item data - idempotent operation
     await redis.del(`invoiceItem:${userID}:${itemID}`);
   } else {
+    const sqliteInvoices = await import('./sqlite/invoices');
     return sqliteInvoices.deleteInvoiceItem(userID, itemID);
   }
 }
