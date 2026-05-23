@@ -31,11 +31,11 @@ describe('userService', () => {
   describe('registerUser', () => {
     it('should create a new user with generated UUID and masked credit card', async () => {
       const mockMaskedCard = '**** **** **** 1234';
-      (dbUsers.getUserByEmail as jest.Mock).mockResolvedValue(null);
-      (maskCreditCardModule.maskCreditCard as jest.Mock).mockReturnValue(
+      (dbUsers.getUserByEmail as any).mockResolvedValue(null);
+      (maskCreditCardModule.maskCreditCard as any).mockReturnValue(
         mockMaskedCard
       );
-      (dbUsers.createUser as jest.Mock).mockResolvedValue(undefined);
+      (dbUsers.createUser as any).mockResolvedValue(undefined);
 
       const userData = {
         username: 'testuser',
@@ -72,7 +72,7 @@ describe('userService', () => {
         creditCardType: 'Mastercard'
       };
 
-      (dbUsers.getUserByEmail as jest.Mock).mockResolvedValue(existingUser);
+      (dbUsers.getUserByEmail as any).mockResolvedValue(existingUser);
 
       const userData = {
         username: 'testuser',
@@ -99,7 +99,7 @@ describe('userService', () => {
         creditCardType: 'Visa'
       };
 
-      (dbUsers.getUser as jest.Mock).mockResolvedValue(mockUser);
+      (dbUsers.getUser as any).mockResolvedValue(mockUser);
 
       const result = await getUserProfile('user-123');
 
@@ -108,7 +108,7 @@ describe('userService', () => {
     });
 
     it('should return null if user not found', async () => {
-      (dbUsers.getUser as jest.Mock).mockResolvedValue(null);
+      (dbUsers.getUser as any).mockResolvedValue(null);
 
       const result = await getUserProfile('nonexistent');
 
@@ -132,10 +132,10 @@ describe('userService', () => {
         fullName: 'Updated Name'
       };
 
-      (dbUsers.getUser as jest.Mock)
+      (dbUsers.getUser as any)
         .mockResolvedValueOnce(existingUser)
         .mockResolvedValueOnce(updatedUser);
-      (dbUsers.updateUser as jest.Mock).mockResolvedValue(undefined);
+      (dbUsers.updateUser as any).mockResolvedValue(undefined);
 
       const result = await updateUserProfile('user-123', {
         fullName: 'Updated Name'
@@ -158,16 +158,16 @@ describe('userService', () => {
       };
 
       const mockMaskedCard = '**** **** **** 5678';
-      (dbUsers.getUser as jest.Mock)
+      (dbUsers.getUser as any)
         .mockResolvedValueOnce(existingUser)
         .mockResolvedValueOnce({
           ...existingUser,
           creditCardNumber: mockMaskedCard
         });
-      (maskCreditCardModule.maskCreditCard as jest.Mock).mockReturnValue(
+      (maskCreditCardModule.maskCreditCard as any).mockReturnValue(
         mockMaskedCard
       );
-      (dbUsers.updateUser as jest.Mock).mockResolvedValue(undefined);
+      (dbUsers.updateUser as any).mockResolvedValue(undefined);
 
       await updateUserProfile('user-123', {
         creditCardNumber: '5555555555555555'
@@ -182,7 +182,7 @@ describe('userService', () => {
     });
 
     it('should throw error if user not found', async () => {
-      (dbUsers.getUser as jest.Mock).mockResolvedValue(null);
+      (dbUsers.getUser as any).mockResolvedValue(null);
 
       await expect(
         updateUserProfile('nonexistent', { fullName: 'New Name' })
@@ -208,8 +208,8 @@ describe('userService', () => {
         creditCardType: 'Mastercard'
       };
 
-      (dbUsers.getUser as jest.Mock).mockResolvedValue(existingUser);
-      (dbUsers.getUserByEmail as jest.Mock).mockResolvedValue(otherUser);
+      (dbUsers.getUser as any).mockResolvedValue(existingUser);
+      (dbUsers.getUserByEmail as any).mockResolvedValue(otherUser);
 
       await expect(
         updateUserProfile('user-123', { userEmail: 'other@example.com' })
@@ -238,12 +238,12 @@ describe('userService', () => {
         { invoiceID: 'INV000000002', userID: 'user-123' }
       ];
 
-      (dbUsers.getUser as jest.Mock).mockResolvedValue(mockUser);
-      (dbReceipts.listReceipts as jest.Mock).mockResolvedValue(mockReceipts);
-      (dbInvoices.listInvoices as jest.Mock).mockResolvedValue(mockInvoices);
-      (dbReceipts.deleteReceipt as jest.Mock).mockResolvedValue(undefined);
-      (dbInvoices.deleteInvoice as jest.Mock).mockResolvedValue(undefined);
-      (dbUsers.deleteUser as jest.Mock).mockResolvedValue(undefined);
+      (dbUsers.getUser as any).mockResolvedValue(mockUser);
+      (dbReceipts.listReceipts as any).mockResolvedValue(mockReceipts);
+      (dbInvoices.listInvoices as any).mockResolvedValue(mockInvoices);
+      (dbReceipts.deleteReceipt as any).mockResolvedValue(undefined);
+      (dbInvoices.deleteInvoice as any).mockResolvedValue(undefined);
+      (dbUsers.deleteUser as any).mockResolvedValue(undefined);
 
       await deleteUserAccount('user-123');
 
@@ -253,7 +253,7 @@ describe('userService', () => {
     });
 
     it('should be idempotent if user does not exist', async () => {
-      (dbUsers.getUser as jest.Mock).mockResolvedValue(null);
+      (dbUsers.getUser as any).mockResolvedValue(null);
 
       await deleteUserAccount('nonexistent');
 
@@ -272,7 +272,7 @@ describe('userService', () => {
         creditCardType: 'Visa'
       };
 
-      (dbUsers.getUserByEmail as jest.Mock).mockResolvedValue(mockUser);
+      (dbUsers.getUserByEmail as any).mockResolvedValue(mockUser);
 
       const result = await findUserByEmail('test@example.com');
 
@@ -281,7 +281,7 @@ describe('userService', () => {
     });
 
     it('should return null if email not found', async () => {
-      (dbUsers.getUserByEmail as jest.Mock).mockResolvedValue(null);
+      (dbUsers.getUserByEmail as any).mockResolvedValue(null);
 
       const result = await findUserByEmail('nonexistent@example.com');
 
@@ -289,5 +289,3 @@ describe('userService', () => {
     });
   });
 });
-
-// Made with Bob

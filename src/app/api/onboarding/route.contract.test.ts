@@ -21,6 +21,7 @@ const mockCompleteOnboarding =
 
 describe('GET /api/onboarding', () => {
   const validConfig: CompanyConfig = {
+    companyID: 'comp-001',
     brandName: 'Test Brand',
     companyName: 'Test Company Inc.',
     companyUrl: 'https://example.com',

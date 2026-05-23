@@ -17,6 +17,7 @@ describe('company database operations', () => {
   const userID = '550e8400-e29b-41d4-a716-446655440000';
 
   const validCompanyConfig: CompanyConfig = {
+    companyID: 'comp-001',
     brandName: 'Test Brand',
     companyName: 'Test Company Inc.',
     companyUrl: 'https://example.com',

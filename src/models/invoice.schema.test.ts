@@ -1,155 +1,120 @@
-import { invoiceItemSchema, invoiceSchema } from './invoice';
+import {
+  invoiceItemMasterSchema,
+  invoiceSchema,
+  type BillingHistoryEntry,
+  type InvoiceItemWithHistory
+} from './invoice';
 
-describe('invoiceItemSchema', () => {
-  const validInvoiceItem = {
-    itemID: 'item-001',
-    quantity: 2,
+describe('invoiceItemMasterSchema', () => {
+  const validInvoiceItemMaster = {
+    invoiceItemID: 'IIM-ABC123XYZ456',
+    companyID: 'COMP-XYZ789ABC123',
     description: 'Consulting services',
-    rate: 1500,
-    date: '2026-05-20'
+    defaultRate: 1500.0,
+    createdAt: '2026-05-20'
   };
 
-  it('accepts a valid invoice item', () => {
-    const result = invoiceItemSchema.safeParse(validInvoiceItem);
+  it('accepts a valid invoice item master', () => {
+    const result = invoiceItemMasterSchema.safeParse(validInvoiceItemMaster);
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data).toEqual(validInvoiceItem);
+      expect(result.data).toEqual(validInvoiceItemMaster);
     }
   });
 
-  describe('itemID validation', () => {
-    it('rejects empty item ID', () => {
-      const result = invoiceItemSchema.safeParse({
-        ...validInvoiceItem,
-        itemID: ''
+  describe('invoiceItemID validation', () => {
+    it('rejects empty invoice item ID', () => {
+      const result = invoiceItemMasterSchema.safeParse({
+        ...validInvoiceItemMaster,
+        invoiceItemID: ''
       });
       expect(result.success).toBe(false);
     });
 
-    it('rejects item ID exceeding 50 characters', () => {
-      const result = invoiceItemSchema.safeParse({
-        ...validInvoiceItem,
-        itemID: 'a'.repeat(51)
+    it('rejects invoice item ID exceeding 50 characters', () => {
+      const result = invoiceItemMasterSchema.safeParse({
+        ...validInvoiceItemMaster,
+        invoiceItemID: 'a'.repeat(51)
       });
       expect(result.success).toBe(false);
     });
   });
 
-  describe('quantity validation', () => {
-    it('rejects negative quantity', () => {
-      const result = invoiceItemSchema.safeParse({
-        ...validInvoiceItem,
-        quantity: -1
+  describe('companyID validation', () => {
+    it('rejects empty company ID', () => {
+      const result = invoiceItemMasterSchema.safeParse({
+        ...validInvoiceItemMaster,
+        companyID: ''
       });
       expect(result.success).toBe(false);
-    });
-
-    it('rejects zero quantity', () => {
-      const result = invoiceItemSchema.safeParse({
-        ...validInvoiceItem,
-        quantity: 0
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects non-integer quantity', () => {
-      const result = invoiceItemSchema.safeParse({
-        ...validInvoiceItem,
-        quantity: 1.5
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects infinite quantity', () => {
-      const result = invoiceItemSchema.safeParse({
-        ...validInvoiceItem,
-        quantity: Infinity
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('accepts valid positive integer quantity', () => {
-      const result = invoiceItemSchema.safeParse({
-        ...validInvoiceItem,
-        quantity: 100
-      });
-      expect(result.success).toBe(true);
     });
   });
 
   describe('description validation', () => {
     it('rejects empty description', () => {
-      const result = invoiceItemSchema.safeParse({
-        ...validInvoiceItem,
+      const result = invoiceItemMasterSchema.safeParse({
+        ...validInvoiceItemMaster,
         description: ''
       });
       expect(result.success).toBe(false);
     });
 
     it('rejects description exceeding 500 characters', () => {
-      const result = invoiceItemSchema.safeParse({
-        ...validInvoiceItem,
+      const result = invoiceItemMasterSchema.safeParse({
+        ...validInvoiceItemMaster,
         description: 'a'.repeat(501)
       });
       expect(result.success).toBe(false);
     });
   });
 
-  describe('rate validation', () => {
-    it('rejects negative rate', () => {
-      const result = invoiceItemSchema.safeParse({
-        ...validInvoiceItem,
-        rate: -10
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects zero rate', () => {
-      const result = invoiceItemSchema.safeParse({
-        ...validInvoiceItem,
-        rate: 0
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('accepts minimum valid rate', () => {
-      const result = invoiceItemSchema.safeParse({
-        ...validInvoiceItem,
-        rate: 0.01
+  describe('defaultRate validation', () => {
+    it('accepts null default rate', () => {
+      const result = invoiceItemMasterSchema.safeParse({
+        ...validInvoiceItemMaster,
+        defaultRate: null
       });
       expect(result.success).toBe(true);
     });
 
-    it('rejects infinite rate', () => {
-      const result = invoiceItemSchema.safeParse({
-        ...validInvoiceItem,
-        rate: Infinity
+    it('rejects negative default rate', () => {
+      const result = invoiceItemMasterSchema.safeParse({
+        ...validInvoiceItemMaster,
+        defaultRate: -10
       });
       expect(result.success).toBe(false);
+    });
+
+    it('rejects zero default rate', () => {
+      const result = invoiceItemMasterSchema.safeParse({
+        ...validInvoiceItemMaster,
+        defaultRate: 0
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('accepts minimum valid default rate', () => {
+      const result = invoiceItemMasterSchema.safeParse({
+        ...validInvoiceItemMaster,
+        defaultRate: 0.01
+      });
+      expect(result.success).toBe(true);
     });
   });
 
-  describe('date validation', () => {
+  describe('createdAt validation', () => {
     it('rejects invalid date format', () => {
-      const result = invoiceItemSchema.safeParse({
-        ...validInvoiceItem,
-        date: '20-05-2026'
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects date with time component', () => {
-      const result = invoiceItemSchema.safeParse({
-        ...validInvoiceItem,
-        date: '2026-05-20T10:30:00Z'
+      const result = invoiceItemMasterSchema.safeParse({
+        ...validInvoiceItemMaster,
+        createdAt: '2026/05/20'
       });
       expect(result.success).toBe(false);
     });
 
     it('accepts valid ISO date', () => {
-      const result = invoiceItemSchema.safeParse({
-        ...validInvoiceItem,
-        date: '2026-12-31'
+      const result = invoiceItemMasterSchema.safeParse({
+        ...validInvoiceItemMaster,
+        createdAt: '2026-12-31'
       });
       expect(result.success).toBe(true);
     });
@@ -157,28 +122,29 @@ describe('invoiceItemSchema', () => {
 });
 
 describe('invoiceSchema', () => {
-  const validInvoiceItem = {
-    itemID: 'item-001',
+  const validBillingHistoryEntry: BillingHistoryEntry = {
+    billingHistoryID: 'BH-ABC123',
     quantity: 2,
-    description: 'Consulting services',
     rate: 1500,
-    date: '2026-05-20'
+    date: '2026-05-20',
+    amount: 3000
+  };
+
+  const validInvoiceItemWithHistory: InvoiceItemWithHistory = {
+    invoiceItemID: 'IIM-ABC123',
+    description: 'Consulting services',
+    billingHistoryEntries: [validBillingHistoryEntry]
   };
 
   const validInvoice = {
     invoiceID: 'INV000000001',
+    billingUserID: 'BU-XYZ789ABC123',
     invoiceDate: '2026-05-20',
     terms: 'Net 30',
     dueDate: '2026-06-19',
     currency: 'PHP' as const,
-    billTo: 'Acme Corp',
-    billToAddressLine: '456 Client Avenue',
-    billToCityAddress: 'Taguig City',
-    billToPostalAddress: '1634',
-    billToCountry: 'Philippines',
-    invoiceItems: [validInvoiceItem],
+    invoiceItems: [validInvoiceItemWithHistory],
     taxRate: 0.12,
-    userID: 'user-001',
     createdAt: '2026-05-20'
   };
 
@@ -224,6 +190,24 @@ describe('invoiceSchema', () => {
     });
   });
 
+  describe('billingUserID validation', () => {
+    it('rejects empty billing user ID', () => {
+      const result = invoiceSchema.safeParse({
+        ...validInvoice,
+        billingUserID: ''
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('rejects billing user ID exceeding 50 characters', () => {
+      const result = invoiceSchema.safeParse({
+        ...validInvoice,
+        billingUserID: 'a'.repeat(51)
+      });
+      expect(result.success).toBe(false);
+    });
+  });
+
   describe('currency validation', () => {
     it('accepts PHP currency', () => {
       const result = invoiceSchema.safeParse({
@@ -263,8 +247,40 @@ describe('invoiceSchema', () => {
       const result = invoiceSchema.safeParse({
         ...validInvoice,
         invoiceItems: [
-          validInvoiceItem,
-          { ...validInvoiceItem, itemID: 'item-002' }
+          validInvoiceItemWithHistory,
+          {
+            ...validInvoiceItemWithHistory,
+            invoiceItemID: 'IIM-DEF456'
+          }
+        ]
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects invoice item with empty billing history entries', () => {
+      const result = invoiceSchema.safeParse({
+        ...validInvoice,
+        invoiceItems: [
+          {
+            ...validInvoiceItemWithHistory,
+            billingHistoryEntries: []
+          }
+        ]
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('accepts invoice item with multiple billing history entries', () => {
+      const result = invoiceSchema.safeParse({
+        ...validInvoice,
+        invoiceItems: [
+          {
+            ...validInvoiceItemWithHistory,
+            billingHistoryEntries: [
+              validBillingHistoryEntry,
+              { ...validBillingHistoryEntry, billingHistoryID: 'BH-DEF456' }
+            ]
+          }
         ]
       });
       expect(result.success).toBe(true);
@@ -331,29 +347,19 @@ describe('invoiceSchema', () => {
     });
   });
 
-  describe('billTo fields validation', () => {
-    it('rejects empty billTo', () => {
-      const result = invoiceSchema.safeParse({
-        ...validInvoice,
-        billTo: ''
-      });
+  describe('missing fields', () => {
+    it('rejects invoice missing billingUserID', () => {
+      const { billingUserID: _billingUserID, ...incomplete } = validInvoice;
+      const result = invoiceSchema.safeParse(incomplete);
       expect(result.success).toBe(false);
     });
 
-    it('rejects empty billToAddressLine', () => {
-      const result = invoiceSchema.safeParse({
-        ...validInvoice,
-        billToAddressLine: ''
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects empty billToCityAddress', () => {
-      const result = invoiceSchema.safeParse({
-        ...validInvoice,
-        billToCityAddress: ''
-      });
+    it('rejects invoice missing invoiceItems', () => {
+      const { invoiceItems: _invoiceItems, ...incomplete } = validInvoice;
+      const result = invoiceSchema.safeParse(incomplete);
       expect(result.success).toBe(false);
     });
   });
 });
+
+// Made with Bob

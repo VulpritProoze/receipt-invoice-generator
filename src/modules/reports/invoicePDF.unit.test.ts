@@ -12,9 +12,11 @@
 import { generateInvoicePDF } from './invoicePDF';
 import type { Invoice } from '@/models/invoice';
 import type { CompanyConfig } from '@/models/company';
+import type { BillingUser } from '@/models/billingUser';
 
 describe('generateInvoicePDF', () => {
   const mockCompanyConfig: CompanyConfig = {
+    companyID: 'company123',
     brandName: 'TestCorp',
     companyName: 'TestCorp Inc.',
     companyUrl: 'https://testcorp.com',
@@ -24,40 +26,58 @@ describe('generateInvoicePDF', () => {
     logoUrl: 'https://testcorp.com/logo.png'
   };
 
+  const mockBillingUser: BillingUser = {
+    billingUserID: 'billing123',
+    companyID: 'company123',
+    name: 'John Doe',
+    addressLine: '456 Client Ave',
+    cityAddress: 'Client City',
+    postalAddress: 'CC 67890',
+    country: 'Client Country',
+    createdAt: '2026-05-20'
+  };
+
   const mockInvoice: Invoice = {
     invoiceID: 'INV000000001',
-    userID: 'user123',
+    billingUserID: 'billing123',
     invoiceDate: '2026-05-20',
     terms: 'Due Upon Receipt',
     dueDate: '2026-06-20',
     currency: 'PHP',
-    billTo: 'John Doe',
-    billToAddressLine: '456 Client Ave',
-    billToCityAddress: 'Client City',
-    billToPostalAddress: 'CC 67890',
-    billToCountry: 'Client Country',
     taxRate: 0.12,
     invoiceItems: [
       {
-        itemID: 'item1',
-        quantity: 2,
+        invoiceItemID: 'item1',
         description: 'Consulting Services',
-        rate: 1000,
-        date: '2026-05-15'
+        billingHistoryEntries: [
+          {
+            billingHistoryID: 'bh1',
+            quantity: 2,
+            rate: 1000,
+            date: '2026-05-15',
+            amount: 2000
+          }
+        ]
       },
       {
-        itemID: 'item2',
-        quantity: 1,
+        invoiceItemID: 'item2',
         description: 'Software License',
-        rate: 500,
-        date: '2026-05-16'
+        billingHistoryEntries: [
+          {
+            billingHistoryID: 'bh2',
+            quantity: 1,
+            rate: 500,
+            date: '2026-05-16',
+            amount: 500
+          }
+        ]
       }
     ],
     createdAt: '2026-05-20'
   };
 
   it('should generate a PDF buffer for valid invoice with PHP currency', async () => {
-    const pdfBuffer = await generateInvoicePDF(mockInvoice, mockCompanyConfig);
+    const pdfBuffer = await generateInvoicePDF(mockInvoice, mockCompanyConfig, mockBillingUser);
 
     expect(pdfBuffer).toBeInstanceOf(Buffer);
     expect(pdfBuffer.length).toBeGreaterThan(0);
@@ -73,7 +93,7 @@ describe('generateInvoicePDF', () => {
       currency: 'USD'
     };
 
-    const pdfBuffer = await generateInvoicePDF(usdInvoice, mockCompanyConfig);
+    const pdfBuffer = await generateInvoicePDF(usdInvoice, mockCompanyConfig, mockBillingUser);
 
     expect(pdfBuffer).toBeInstanceOf(Buffer);
     expect(pdfBuffer.length).toBeGreaterThan(0);
@@ -88,18 +108,25 @@ describe('generateInvoicePDF', () => {
       ...mockInvoice,
       invoiceItems: [
         {
-          itemID: 'item1',
-          quantity: 1,
+          invoiceItemID: 'item1',
           description: 'Single Service',
-          rate: 100,
-          date: '2026-05-20'
+          billingHistoryEntries: [
+            {
+              billingHistoryID: 'bh1',
+              quantity: 1,
+              rate: 100,
+              date: '2026-05-20',
+              amount: 100
+            }
+          ]
         }
       ]
     };
 
     const pdfBuffer = await generateInvoicePDF(
       singleItemInvoice,
-      mockCompanyConfig
+      mockCompanyConfig,
+      mockBillingUser
     );
 
     expect(pdfBuffer).toBeInstanceOf(Buffer);
@@ -111,32 +138,51 @@ describe('generateInvoicePDF', () => {
       ...mockInvoice,
       invoiceItems: [
         {
-          itemID: 'item1',
-          quantity: 2,
+          invoiceItemID: 'item1',
           description: 'Service A',
-          rate: 100,
-          date: '2026-05-15'
+          billingHistoryEntries: [
+            {
+              billingHistoryID: 'bh1',
+              quantity: 2,
+              rate: 100,
+              date: '2026-05-15',
+              amount: 200
+            }
+          ]
         },
         {
-          itemID: 'item2',
-          quantity: 3,
+          invoiceItemID: 'item2',
           description: 'Service B',
-          rate: 200,
-          date: '2026-05-16'
+          billingHistoryEntries: [
+            {
+              billingHistoryID: 'bh2',
+              quantity: 3,
+              rate: 200,
+              date: '2026-05-16',
+              amount: 600
+            }
+          ]
         },
         {
-          itemID: 'item3',
-          quantity: 1,
+          invoiceItemID: 'item3',
           description: 'Service C',
-          rate: 300,
-          date: '2026-05-17'
+          billingHistoryEntries: [
+            {
+              billingHistoryID: 'bh3',
+              quantity: 1,
+              rate: 300,
+              date: '2026-05-17',
+              amount: 300
+            }
+          ]
         }
       ]
     };
 
     const pdfBuffer = await generateInvoicePDF(
       multiItemInvoice,
-      mockCompanyConfig
+      mockCompanyConfig,
+      mockBillingUser
     );
 
     expect(pdfBuffer).toBeInstanceOf(Buffer);
@@ -151,7 +197,8 @@ describe('generateInvoicePDF', () => {
 
     const pdfBuffer = await generateInvoicePDF(
       zeroTaxInvoice,
-      mockCompanyConfig
+      mockCompanyConfig,
+      mockBillingUser
     );
 
     expect(pdfBuffer).toBeInstanceOf(Buffer);
@@ -166,7 +213,8 @@ describe('generateInvoicePDF', () => {
 
     const pdfBuffer = await generateInvoicePDF(
       highTaxInvoice,
-      mockCompanyConfig
+      mockCompanyConfig,
+      mockBillingUser
     );
 
     expect(pdfBuffer).toBeInstanceOf(Buffer);
@@ -178,19 +226,26 @@ describe('generateInvoicePDF', () => {
       ...mockInvoice,
       invoiceItems: [
         {
-          itemID: 'item1',
-          quantity: 1,
+          invoiceItemID: 'item1',
           description:
             'This is a very long description that spans multiple words and should be handled properly by the PDF generator without breaking the layout or causing any rendering issues',
-          rate: 1000,
-          date: '2026-05-20'
+          billingHistoryEntries: [
+            {
+              billingHistoryID: 'bh1',
+              quantity: 1,
+              rate: 1000,
+              date: '2026-05-20',
+              amount: 1000
+            }
+          ]
         }
       ]
     };
 
     const pdfBuffer = await generateInvoicePDF(
       longDescInvoice,
-      mockCompanyConfig
+      mockCompanyConfig,
+      mockBillingUser
     );
 
     expect(pdfBuffer).toBeInstanceOf(Buffer);
@@ -202,23 +257,28 @@ describe('generateInvoicePDF', () => {
       ...mockInvoice,
       invoiceItems: [
         {
-          itemID: 'item1',
-          quantity: 2.5,
+          invoiceItemID: 'item1',
           description: 'Hourly Service',
-          rate: 150.75,
-          date: '2026-05-20'
+          billingHistoryEntries: [
+            {
+              billingHistoryID: 'bh1',
+              quantity: 2.5,
+              rate: 150.75,
+              date: '2026-05-20',
+              amount: 376.875
+            }
+          ]
         }
       ]
     };
 
     const pdfBuffer = await generateInvoicePDF(
       decimalInvoice,
-      mockCompanyConfig
+      mockCompanyConfig,
+      mockBillingUser
     );
 
     expect(pdfBuffer).toBeInstanceOf(Buffer);
     expect(pdfBuffer.length).toBeGreaterThan(0);
   });
 });
-
-// Made with Bob

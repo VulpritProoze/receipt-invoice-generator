@@ -9,15 +9,20 @@ import {
 import * as dbReceipts from '@/lib/db/receipts';
 import * as dbInvoices from '@/lib/db/invoices';
 import * as dbUsers from '@/lib/db/users';
+import * as billingUserService from '@/modules/billingUsers/billingUserService';
+import * as companyDB from '@/lib/db/company';
 import * as idGenerator from '@/lib/idGenerator';
 import { Receipt } from '@/models/receipt';
 import { Invoice } from '@/models/invoice';
 import { User } from '@/models/user';
+import { CompanyConfig } from '@/models/company';
 
 // Mock database operations
 jest.mock('@/lib/db/receipts');
 jest.mock('@/lib/db/invoices');
 jest.mock('@/lib/db/users');
+jest.mock('@/modules/billingUsers/billingUserService');
+jest.mock('@/lib/db/company');
 jest.mock('@/lib/idGenerator');
 
 describe('receiptService', () => {
@@ -29,27 +34,50 @@ describe('receiptService', () => {
     it('should create receipt with generated ID and user data', async () => {
       const mockInvoice: Invoice = {
         invoiceID: 'INV000000001',
-        userID: 'user-123',
+        billingUserID: 'billing123',
         invoiceDate: '2026-05-20',
         terms: 'Due Upon Receipt',
         dueDate: '2026-05-27',
         currency: 'PHP',
-        billTo: 'Test Client',
-        billToAddressLine: '123 Test St',
-        billToCityAddress: 'Test City',
-        billToPostalAddress: '12345',
-        billToCountry: 'Philippines',
+        taxRate: 0.12,
         invoiceItems: [
           {
-            itemID: 'item-1',
-            quantity: 1,
+            invoiceItemID: 'item-1',
             description: 'Service',
-            rate: 100,
-            date: '2026-05-20'
+            billingHistoryEntries: [
+              {
+                billingHistoryID: 'bh1',
+                quantity: 1,
+                rate: 100,
+                date: '2026-05-20',
+                amount: 100
+              }
+            ]
           }
         ],
-        taxRate: 0.12,
         createdAt: '2026-05-20'
+      };
+
+      const mockBillingUser = {
+        billingUserID: 'billing123',
+        companyID: 'company123',
+        name: 'Test Client',
+        addressLine: '123 Client St',
+        cityAddress: 'Client City',
+        postalAddress: '12345',
+        country: 'Philippines',
+        createdAt: '2026-05-20'
+      };
+
+      const mockCompanyConfig: CompanyConfig = {
+        companyID: 'company123',
+        brandName: 'TestCorp',
+        companyName: 'TestCorp Inc.',
+        companyUrl: 'https://testcorp.com',
+        addressLine: '123 Test Street',
+        postalAddress: 'Test City, TC 12345',
+        country: 'Test Country',
+        logoUrl: 'https://testcorp.com/logo.png'
       };
 
       const mockUser: User = {
@@ -61,18 +89,28 @@ describe('receiptService', () => {
         creditCardType: 'Visa'
       };
 
-      (dbInvoices.getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
-      (dbReceipts.getReceiptByInvoiceID as jest.Mock).mockResolvedValue(null);
-      (dbUsers.getUser as jest.Mock).mockResolvedValue(mockUser);
-      (idGenerator.generateReceiptID as jest.Mock).mockReturnValue(
+      (dbInvoices.getInvoiceByID as any).mockResolvedValue(mockInvoice);
+      (billingUserService.getBillingUser as any).mockResolvedValue(mockBillingUser);
+      (companyDB.getCompanyConfig as any).mockResolvedValue(mockCompanyConfig);
+      (dbReceipts.getReceiptByInvoiceID as any).mockResolvedValue(null);
+      (dbUsers.getUser as any).mockResolvedValue(mockUser);
+      (idGenerator.generateReceiptID as any).mockReturnValue(
         'CH_A3K9MXQP2T7VWRJN'
       );
-      (dbReceipts.createReceipt as jest.Mock).mockResolvedValue(undefined);
+      (dbReceipts.createReceipt as any).mockResolvedValue(undefined);
 
       const receiptData = {
         date: '2026-05-20',
         invoiceID: 'INV000000001',
-        invoiceItems: mockInvoice.invoiceItems,
+        invoiceItems: [
+          {
+            itemID: 'item-1',
+            quantity: 1,
+            description: 'Service',
+            rate: 100,
+            date: '2026-05-20'
+          }
+        ],
         total: 112
       };
 
@@ -81,15 +119,14 @@ describe('receiptService', () => {
       expect(result.receiptID).toBe('CH_A3K9MXQP2T7VWRJN');
       expect(result.accountBilled).toBe('testuser (test@example.com)');
       expect(result.chargedTo).toBe('Visa **** **** **** 1234');
-      expect(dbInvoices.getInvoice).toHaveBeenCalledWith(
-        'user-123',
+      expect(dbInvoices.getInvoiceByID).toHaveBeenCalledWith(
         'INV000000001'
       );
       expect(dbReceipts.createReceipt).toHaveBeenCalled();
     });
 
     it('should throw error if invoice not found', async () => {
-      (dbInvoices.getInvoice as jest.Mock).mockResolvedValue(null);
+      (dbInvoices.getInvoiceByID as any).mockResolvedValue(null);
 
       const receiptData = {
         date: '2026-05-20',
@@ -106,19 +143,36 @@ describe('receiptService', () => {
     it('should throw error if receipt already exists for invoice', async () => {
       const mockInvoice: Invoice = {
         invoiceID: 'INV000000001',
-        userID: 'user-123',
+        billingUserID: 'billing123',
         invoiceDate: '2026-05-20',
         terms: 'Due Upon Receipt',
         dueDate: '2026-05-27',
         currency: 'PHP',
-        billTo: 'Test Client',
-        billToAddressLine: '123 Test St',
-        billToCityAddress: 'Test City',
-        billToPostalAddress: '12345',
-        billToCountry: 'Philippines',
-        invoiceItems: [],
         taxRate: 0.12,
+        invoiceItems: [],
         createdAt: '2026-05-20'
+      };
+
+      const mockBillingUser = {
+        billingUserID: 'billing123',
+        companyID: 'company123',
+        name: 'Test Client',
+        addressLine: '123 Client St',
+        cityAddress: 'Client City',
+        postalAddress: '12345',
+        country: 'Philippines',
+        createdAt: '2026-05-20'
+      };
+
+      const mockCompanyConfig: CompanyConfig = {
+        companyID: 'company123',
+        brandName: 'TestCorp',
+        companyName: 'TestCorp Inc.',
+        companyUrl: 'https://testcorp.com',
+        addressLine: '123 Test Street',
+        postalAddress: 'Test City, TC 12345',
+        country: 'Test Country',
+        logoUrl: 'https://testcorp.com/logo.png'
       };
 
       const existingReceipt: Receipt = {
@@ -133,8 +187,10 @@ describe('receiptService', () => {
         createdAt: '2026-05-20'
       };
 
-      (dbInvoices.getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
-      (dbReceipts.getReceiptByInvoiceID as jest.Mock).mockResolvedValue(
+      (dbInvoices.getInvoiceByID as any).mockResolvedValue(mockInvoice);
+      (billingUserService.getBillingUser as any).mockResolvedValue(mockBillingUser);
+      (companyDB.getCompanyConfig as any).mockResolvedValue(mockCompanyConfig);
+      (dbReceipts.getReceiptByInvoiceID as any).mockResolvedValue(
         existingReceipt
       );
 
@@ -153,24 +209,43 @@ describe('receiptService', () => {
     it('should throw error if user not found', async () => {
       const mockInvoice: Invoice = {
         invoiceID: 'INV000000001',
-        userID: 'user-123',
+        billingUserID: 'billing123',
         invoiceDate: '2026-05-20',
         terms: 'Due Upon Receipt',
         dueDate: '2026-05-27',
         currency: 'PHP',
-        billTo: 'Test Client',
-        billToAddressLine: '123 Test St',
-        billToCityAddress: 'Test City',
-        billToPostalAddress: '12345',
-        billToCountry: 'Philippines',
-        invoiceItems: [],
         taxRate: 0.12,
+        invoiceItems: [],
         createdAt: '2026-05-20'
       };
 
-      (dbInvoices.getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
-      (dbReceipts.getReceiptByInvoiceID as jest.Mock).mockResolvedValue(null);
-      (dbUsers.getUser as jest.Mock).mockResolvedValue(null);
+      const mockBillingUser = {
+        billingUserID: 'billing123',
+        companyID: 'company123',
+        name: 'Test Client',
+        addressLine: '123 Client St',
+        cityAddress: 'Client City',
+        postalAddress: '12345',
+        country: 'Philippines',
+        createdAt: '2026-05-20'
+      };
+
+      const mockCompanyConfig: CompanyConfig = {
+        companyID: 'company123',
+        brandName: 'TestCorp',
+        companyName: 'TestCorp Inc.',
+        companyUrl: 'https://testcorp.com',
+        addressLine: '123 Test Street',
+        postalAddress: 'Test City, TC 12345',
+        country: 'Test Country',
+        logoUrl: 'https://testcorp.com/logo.png'
+      };
+
+      (dbInvoices.getInvoiceByID as any).mockResolvedValue(mockInvoice);
+      (billingUserService.getBillingUser as any).mockResolvedValue(mockBillingUser);
+      (companyDB.getCompanyConfig as any).mockResolvedValue(mockCompanyConfig);
+      (dbReceipts.getReceiptByInvoiceID as any).mockResolvedValue(null);
+      (dbUsers.getUser as any).mockResolvedValue(null);
 
       const receiptData = {
         date: '2026-05-20',
@@ -199,7 +274,7 @@ describe('receiptService', () => {
         createdAt: '2026-05-20'
       };
 
-      (dbReceipts.getReceipt as jest.Mock).mockResolvedValue(mockReceipt);
+      (dbReceipts.getReceipt as any).mockResolvedValue(mockReceipt);
 
       const result = await getReceipt('user-123', 'CH_A3K9MXQP2T7VWRJN');
 
@@ -207,7 +282,7 @@ describe('receiptService', () => {
     });
 
     it('should return null if not found', async () => {
-      (dbReceipts.getReceipt as jest.Mock).mockResolvedValue(null);
+      (dbReceipts.getReceipt as any).mockResolvedValue(null);
 
       const result = await getReceipt('user-123', 'CH_NONEXISTENT');
 
@@ -229,7 +304,7 @@ describe('receiptService', () => {
         createdAt: '2026-05-20'
       };
 
-      (dbReceipts.getReceiptByInvoiceID as jest.Mock).mockResolvedValue(
+      (dbReceipts.getReceiptByInvoiceID as any).mockResolvedValue(
         mockReceipt
       );
 
@@ -255,7 +330,7 @@ describe('receiptService', () => {
         }
       ];
 
-      (dbReceipts.listReceipts as jest.Mock).mockResolvedValue(mockReceipts);
+      (dbReceipts.listReceipts as any).mockResolvedValue(mockReceipts);
 
       const result = await listUserReceipts('user-123');
 
@@ -265,7 +340,7 @@ describe('receiptService', () => {
 
   describe('deleteReceipt', () => {
     it('should delete receipt', async () => {
-      (dbReceipts.deleteReceipt as jest.Mock).mockResolvedValue(undefined);
+      (dbReceipts.deleteReceipt as any).mockResolvedValue(undefined);
 
       await deleteReceipt('user-123', 'CH_A3K9MXQP2T7VWRJN');
 
@@ -276,5 +351,3 @@ describe('receiptService', () => {
     });
   });
 });
-
-// Made with Bob

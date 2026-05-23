@@ -19,6 +19,7 @@ const mockSetCompanyConfig = setCompanyConfig as jest.MockedFunction<
 describe('onboardingService', () => {
   const testUserID = 'user-123';
   const validConfig: CompanyConfig = {
+    companyID: 'company-123',
     brandName: 'Test Brand',
     companyName: 'Test Company Inc.',
     companyUrl: 'https://example.com',

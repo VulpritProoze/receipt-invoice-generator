@@ -2,6 +2,7 @@ import { companyConfigSchema } from './company';
 
 describe('companyConfigSchema', () => {
   const validCompanyConfig = {
+    companyID: 'COMP-ABC123XYZ456',
     brandName: 'BillGen',
     companyName: 'BillGen Inc.',
     companyUrl: 'https://billgen.example.com',
@@ -17,6 +18,32 @@ describe('companyConfigSchema', () => {
     if (result.success) {
       expect(result.data).toEqual(validCompanyConfig);
     }
+  });
+
+  describe('companyID validation', () => {
+    it('rejects empty company ID', () => {
+      const result = companyConfigSchema.safeParse({
+        ...validCompanyConfig,
+        companyID: ''
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('rejects company ID exceeding 50 characters', () => {
+      const result = companyConfigSchema.safeParse({
+        ...validCompanyConfig,
+        companyID: 'a'.repeat(51)
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('accepts company ID at maximum length', () => {
+      const result = companyConfigSchema.safeParse({
+        ...validCompanyConfig,
+        companyID: 'a'.repeat(50)
+      });
+      expect(result.success).toBe(true);
+    });
   });
 
   describe('brandName validation', () => {

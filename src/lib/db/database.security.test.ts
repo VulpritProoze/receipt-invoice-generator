@@ -11,7 +11,7 @@ import {
 } from './receipts';
 import { setCompanyConfig, getCompanyConfig } from './company';
 import { User } from '@/models/user';
-import { Invoice, InvoiceItem } from '@/models/invoice';
+import { Invoice, InvoiceItem, InvoiceItemWithHistory } from '@/models/invoice';
 import { Receipt } from '@/models/receipt';
 import { CompanyConfig } from '@/models/company';
 
@@ -42,12 +42,26 @@ describe('database security tests', () => {
     creditCardType: 'Mastercard'
   };
 
-  const validInvoiceItem: InvoiceItem = {
+  const validReceiptItem: InvoiceItem = {
     itemID: 'item-001',
     quantity: 2,
     description: 'Test Item',
     rate: 100.0,
     date: '2026-05-20'
+  };
+
+  const validInvoiceItem: InvoiceItemWithHistory = {
+    invoiceItemID: 'item-001',
+    description: 'Test Item',
+    billingHistoryEntries: [
+      {
+        billingHistoryID: 'bh-001',
+        quantity: 2,
+        rate: 100.0,
+        date: '2026-05-20',
+        amount: 200.0
+      }
+    ]
   };
 
   const user1Invoice: Invoice = {
@@ -56,22 +70,16 @@ describe('database security tests', () => {
     terms: 'Due Upon Receipt',
     dueDate: '2026-06-20',
     currency: 'PHP',
-    billTo: 'Client 1',
-    billToAddressLine: '123 Test St',
-    billToCityAddress: 'Test City',
-    billToPostalAddress: '12345',
-    billToCountry: 'Philippines',
     invoiceItems: [validInvoiceItem],
     taxRate: 0.12,
-    userID: user1ID,
+    billingUserID: user1ID,
     createdAt: '2026-05-20'
   };
 
   const user2Invoice: Invoice = {
     ...user1Invoice,
     invoiceID: 'INV000000002',
-    userID: user2ID,
-    billTo: 'Client 2'
+    billingUserID: user2ID
   };
 
   const user1Receipt: Receipt = {
@@ -79,7 +87,7 @@ describe('database security tests', () => {
     date: '2026-05-20',
     accountBilled: 'user1 (user1@example.com)',
     invoiceID: 'INV000000001',
-    invoiceItems: [validInvoiceItem],
+    invoiceItems: [validReceiptItem],
     total: 224.0,
     chargedTo: 'Visa **** **** **** 1111',
     userID: user1ID,
@@ -91,7 +99,7 @@ describe('database security tests', () => {
     date: '2026-05-20',
     accountBilled: 'user2 (user2@example.com)',
     invoiceID: 'INV000000002',
-    invoiceItems: [validInvoiceItem],
+    invoiceItems: [validReceiptItem],
     total: 224.0,
     chargedTo: 'Mastercard **** **** **** 2222',
     userID: user2ID,
@@ -99,6 +107,7 @@ describe('database security tests', () => {
   };
 
   const user1CompanyConfig: CompanyConfig = {
+    companyID: 'comp-001',
     brandName: 'User 1 Brand',
     companyName: 'User 1 Company Inc.',
     companyUrl: 'https://user1.com',
@@ -110,6 +119,7 @@ describe('database security tests', () => {
 
   const user2CompanyConfig: CompanyConfig = {
     ...user1CompanyConfig,
+    companyID: 'comp-002',
     brandName: 'User 2 Brand',
     companyName: 'User 2 Company Inc.',
     companyUrl: 'https://user2.com',
@@ -162,7 +172,7 @@ describe('database security tests', () => {
 
       expect(invoices).toHaveLength(1);
       expect(invoices[0].invoiceID).toBe(user1Invoice.invoiceID);
-      expect(invoices[0].userID).toBe(user1ID);
+      expect(invoices[0].billingUserID).toBe(user1ID);
     });
 
     it('should only return user2 invoices when listing for user2', async () => {
@@ -170,18 +180,18 @@ describe('database security tests', () => {
 
       expect(invoices).toHaveLength(1);
       expect(invoices[0].invoiceID).toBe(user2Invoice.invoiceID);
-      expect(invoices[0].userID).toBe(user2ID);
+      expect(invoices[0].billingUserID).toBe(user2ID);
     });
 
     it('should reject invoice creation with mismatched userID', async () => {
       const mismatchedInvoice: Invoice = {
         ...user1Invoice,
         invoiceID: 'INV000000003',
-        userID: user2ID // Mismatch: trying to create user2 invoice under user1
+        billingUserID: user2ID // Mismatch: trying to create user2 invoice under user1
       };
 
       await expect(createInvoice(user1ID, mismatchedInvoice)).rejects.toThrow(
-        'Invoice userID does not match provided userID'
+        'Invoice billingUserID does not match provided billingUserID'
       );
     });
   });

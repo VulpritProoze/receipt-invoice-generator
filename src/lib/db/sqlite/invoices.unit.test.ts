@@ -4,24 +4,26 @@ import {
   updateInvoice,
   deleteInvoice,
   listInvoices,
-  getNextInvoiceSequence,
-  createInvoiceItem,
-  getInvoiceItem,
-  listInvoiceItems,
-  deleteInvoiceItem
+  getNextInvoiceSequence
 } from './invoices';
-import { Invoice, InvoiceItem } from '@/models/invoice';
+import { Invoice, InvoiceItemWithHistory } from '@/models/invoice';
 import { db } from '@/lib/db.sqlite';
 
 describe('SQLite invoices database operations', () => {
   const userID = '550e8400-e29b-41d4-a716-446655440000';
 
-  const validInvoiceItem: InvoiceItem = {
-    itemID: 'item-001',
-    quantity: 2,
+  const validInvoiceItem: InvoiceItemWithHistory = {
+    invoiceItemID: 'item-001',
     description: 'Test Item',
-    rate: 100.0,
-    date: '2026-05-20'
+    billingHistoryEntries: [
+      {
+        billingHistoryID: 'bh-001',
+        quantity: 2,
+        rate: 100.0,
+        date: '2026-05-20',
+        amount: 200.0
+      }
+    ]
   };
 
   const validInvoice: Invoice = {
@@ -30,22 +32,46 @@ describe('SQLite invoices database operations', () => {
     terms: 'Due Upon Receipt',
     dueDate: '2026-06-20',
     currency: 'PHP',
-    billTo: 'Test Client',
-    billToAddressLine: '123 Test St',
-    billToCityAddress: 'Test City',
-    billToPostalAddress: '12345',
-    billToCountry: 'Philippines',
     invoiceItems: [validInvoiceItem],
     taxRate: 0.12,
-    userID,
+    billingUserID: userID,
     createdAt: '2026-05-20'
   };
+
+  beforeEach(async () => {
+    db.prepare('PRAGMA foreign_keys = OFF').run();
+    db.prepare('DELETE FROM invoices').run();
+    db.prepare('DELETE FROM invoice_sequences').run();
+    db.prepare('DELETE FROM billing_history').run();
+    db.prepare('DELETE FROM invoice_item_masters').run();
+    db.prepare('DELETE FROM billing_users').run();
+    db.prepare('DELETE FROM company_configs').run();
+    db.prepare('PRAGMA foreign_keys = ON').run();
+
+    // Insert company config
+    db.prepare(`
+      INSERT INTO company_configs (user_id, company_id, brand_name, company_name, company_url, address_line, postal_address, country, logo_url)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run('user-123', 'company-123', 'Test Brand', 'Test Company Inc.', 'https://example.com', '123 Test St', '12345', 'Philippines', 'https://example.com/logo.png');
+
+    // Insert billing user for userID
+    db.prepare(`
+      INSERT INTO billing_users (billing_user_id, company_id, name, address_line, city_address, postal_address, country, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(userID, 'company-123', 'Test Client', '123 Test St', 'Test City', '12345', 'Philippines', '2026-05-20');
+
+    // Insert billing user for user-2-id
+    db.prepare(`
+      INSERT INTO billing_users (billing_user_id, company_id, name, address_line, city_address, postal_address, country, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run('user-2-id', 'company-123', 'Client 2', '123 St', 'City 2', '12345', 'Philippines', '2026-05-20');
+  });
 
   describe('createInvoice', () => {
     it('should create an invoice with valid data', async () => {
       await createInvoice(userID, validInvoice);
 
-      const row = db.prepare('SELECT * FROM invoices WHERE user_id = ? AND invoice_id = ?').get(userID, validInvoice.invoiceID) as { invoice_id: string; tax_rate: number } | undefined;
+      const row = db.prepare('SELECT * FROM invoices WHERE billing_user_id = ? AND invoice_id = ?').get(userID, validInvoice.invoiceID) as { invoice_id: string; tax_rate: number } | undefined;
       expect(row).toBeDefined();
       expect(row?.invoice_id).toBe(validInvoice.invoiceID);
       expect(row?.tax_rate).toBe(validInvoice.taxRate);
@@ -54,11 +80,11 @@ describe('SQLite invoices database operations', () => {
     it('should reject invoice with mismatched userID', async () => {
       const mismatchedInvoice = {
         ...validInvoice,
-        userID: 'different-user-id'
+        billingUserID: 'different-user-id'
       };
 
       await expect(createInvoice(userID, mismatchedInvoice)).rejects.toThrow(
-        'Invoice userID does not match provided userID'
+        'Invoice billingUserID does not match provided billingUserID'
       );
     });
 
@@ -93,11 +119,10 @@ describe('SQLite invoices database operations', () => {
       // Store invalid data directly
       db.prepare(`
         INSERT OR REPLACE INTO invoices (
-          invoice_id, user_id, invoice_date, terms, due_date, currency,
-          bill_to, bill_to_address_line, bill_to_city_address, bill_to_postal_address, bill_to_country,
+          invoice_id, billing_user_id, invoice_date, terms, due_date, currency,
           invoice_items, tax_rate, created_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         validInvoice.invoiceID,
         userID,
@@ -105,11 +130,6 @@ describe('SQLite invoices database operations', () => {
         validInvoice.terms,
         validInvoice.dueDate,
         validInvoice.currency,
-        validInvoice.billTo,
-        validInvoice.billToAddressLine,
-        validInvoice.billToCityAddress,
-        validInvoice.billToPostalAddress,
-        validInvoice.billToCountry,
         'invalid-json', // Corrupted JSON
         validInvoice.taxRate,
         validInvoice.createdAt
@@ -182,22 +202,6 @@ describe('SQLite invoices database operations', () => {
 
       expect(seq1User1).toBe(1);
       expect(seq1User2).toBe(1);
-    });
-  });
-
-  describe('standalone invoice items', () => {
-    it('should create, get, list and delete invoice items', async () => {
-      await createInvoiceItem(userID, validInvoiceItem);
-
-      const retrieved = await getInvoiceItem(userID, validInvoiceItem.itemID);
-      expect(retrieved).toEqual(validInvoiceItem);
-
-      const list = await listInvoiceItems(userID);
-      expect(list).toHaveLength(1);
-
-      await deleteInvoiceItem(userID, validInvoiceItem.itemID);
-      const retrieved2 = await getInvoiceItem(userID, validInvoiceItem.itemID);
-      expect(retrieved2).toBeNull();
     });
   });
 });

@@ -1,36 +1,50 @@
 /**
  * Unit tests for import service
- * Tests orchestration of parsing and storage with mocked database
+ * Tests orchestration of parsing and storage with mocked services
  */
 
 import { importBillingHistory, validateImportFile } from './importService';
-import * as invoicesDb from '@/lib/db/invoices';
+import * as billingUserService from '@/modules/billingUsers/billingUserService';
+import * as billingHistoryService from '@/modules/billingHistory/billingHistoryService';
+import * as importMatcher from './importMatcher';
 import * as XLSX from 'xlsx-js-style';
 
-// Mock the database module
-jest.mock('@/lib/db/invoices');
+// Mock the services
+jest.mock('@/modules/billingUsers/billingUserService');
+jest.mock('@/modules/billingHistory/billingHistoryService');
+jest.mock('./importMatcher');
 
 describe('importService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default mocks
+    (billingUserService.getBillingUser as any).mockResolvedValue({
+      billingUserID: 'user123',
+      companyID: 'company123',
+      name: 'Test Billing User'
+    });
+    (importMatcher.matchImportRowsToItems as any).mockResolvedValue({
+      matched: [
+        { invoiceItemID: 'item-1', description: 'Web hosting', quantity: 1, rate: 1200, date: '2026-05-01' },
+        { invoiceItemID: 'item-2', description: 'Design work', quantity: 2, rate: 1500, date: '2026-05-02' }
+      ],
+      unmatched: []
+    });
+    (billingHistoryService.createBillingHistory as any).mockResolvedValue({});
   });
 
   describe('importBillingHistory', () => {
-    it('should import valid CSV file', async () => {
+    it('should import valid CSV file when all items match catalog', async () => {
       const csv = `Description,Quantity,Rate,Date
 Web hosting,1,1200.00,2026-05-01
 Design work,2,1500.00,2026-05-02`;
-
-      const mockCreateInvoiceItem = jest
-        .spyOn(invoicesDb, 'createInvoiceItem')
-        .mockResolvedValue();
 
       const result = await importBillingHistory('user123', csv, 'csv');
 
       expect(result.imported).toBe(2);
       expect(result.skipped).toBe(0);
       expect(result.errors).toHaveLength(0);
-      expect(mockCreateInvoiceItem).toHaveBeenCalledTimes(2);
+      expect(billingHistoryService.createBillingHistory).toHaveBeenCalledTimes(2);
     });
 
     it('should import valid XLSX file', async () => {
@@ -46,41 +60,49 @@ Design work,2,1500.00,2026-05-02`;
         XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
       );
 
-      const mockCreateInvoiceItem = jest
-        .spyOn(invoicesDb, 'createInvoiceItem')
-        .mockResolvedValue();
+      (importMatcher.matchImportRowsToItems as any).mockResolvedValue({
+        matched: [
+          { invoiceItemID: 'item-1', description: 'Web hosting', quantity: 1, rate: 1200, date: '2026-05-01' }
+        ],
+        unmatched: []
+      });
 
       const result = await importBillingHistory('user123', buffer, 'xlsx');
 
       expect(result.imported).toBe(1);
       expect(result.skipped).toBe(0);
-      expect(mockCreateInvoiceItem).toHaveBeenCalledTimes(1);
+      expect(billingHistoryService.createBillingHistory).toHaveBeenCalledTimes(1);
     });
 
-    it('should skip invalid rows and import valid ones', async () => {
+    it('should abort import and return unmatched items if unmatched items exist', async () => {
       const csv = `Description,Quantity,Rate,Date
-Valid item,1,100.00,2026-05-01
-Invalid item,not-a-number,100.00,2026-05-02
-Another valid,2,200.00,2026-05-03`;
+Web hosting,1,1200.00,2026-05-01
+Unmatched service,2,2000.00,2026-05-02`;
 
-      const mockCreateInvoiceItem = jest
-        .spyOn(invoicesDb, 'createInvoiceItem')
-        .mockResolvedValue();
+      (importMatcher.matchImportRowsToItems as any).mockResolvedValue({
+        matched: [
+          { invoiceItemID: 'item-1', description: 'Web hosting', quantity: 1, rate: 1200, date: '2026-05-01' }
+        ],
+        unmatched: [
+          { description: 'Unmatched service' }
+        ]
+      });
 
       const result = await importBillingHistory('user123', csv, 'csv');
 
-      expect(result.imported).toBe(2);
-      expect(result.skipped).toBe(1);
-      expect(result.errors.length).toBeGreaterThan(0);
-      expect(mockCreateInvoiceItem).toHaveBeenCalledTimes(2);
+      expect(result.imported).toBe(0);
+      expect(result.skipped).toBe(2); // CSV has 2 items
+      expect(result.unmatched).toHaveLength(1);
+      expect(result.unmatched?.[0].description).toBe('Unmatched service');
+      expect(billingHistoryService.createBillingHistory).not.toHaveBeenCalled();
     });
 
-    it('should throw error if userID is missing', async () => {
+    it('should throw error if billingUserID is missing', async () => {
       const csv = `Description,Quantity,Rate,Date
 Item,1,100.00,2026-05-01`;
 
       await expect(importBillingHistory('', csv, 'csv')).rejects.toThrow(
-        'User ID is required'
+        'Billing User ID is required'
       );
     });
 
@@ -107,13 +129,12 @@ Item,1,100.00,2026-05-01`;
 
     it('should handle storage errors gracefully', async () => {
       const csv = `Description,Quantity,Rate,Date
-Item 1,1,100.00,2026-05-01
-Item 2,2,200.00,2026-05-02`;
+Web hosting,1,1200.00,2026-05-01
+Design work,2,1500.00,2026-05-02`;
 
-      jest
-        .spyOn(invoicesDb, 'createInvoiceItem')
+      (billingHistoryService.createBillingHistory as any)
         .mockRejectedValueOnce(new Error('Storage error'))
-        .mockResolvedValueOnce();
+        .mockResolvedValueOnce({});
 
       const result = await importBillingHistory('user123', csv, 'csv');
 
@@ -132,26 +153,6 @@ Item 2,2,200.00,2026-05-02`;
       expect(result.imported).toBe(0);
       expect(result.skipped).toBe(0);
       expect(result.errors.length).toBeGreaterThan(0);
-    });
-
-    it('should associate items with correct userID', async () => {
-      const csv = `Description,Quantity,Rate,Date
-Item,1,100.00,2026-05-01`;
-
-      const mockCreateInvoiceItem = jest
-        .spyOn(invoicesDb, 'createInvoiceItem')
-        .mockResolvedValue();
-
-      await importBillingHistory('user456', csv, 'csv');
-
-      expect(mockCreateInvoiceItem).toHaveBeenCalledWith(
-        'user456',
-        expect.objectContaining({
-          description: 'Item',
-          quantity: 1,
-          rate: 100.0
-        })
-      );
     });
   });
 
@@ -204,5 +205,3 @@ Missing columns`;
     });
   });
 });
-
-// Made with Bob

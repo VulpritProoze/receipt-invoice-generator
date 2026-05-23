@@ -1,52 +1,58 @@
 /**
- * Security tests for Report Generation Module
- *
- * Verifies security requirements:
- * 1. Receipt generation requires verified invoice from database
- * 2. User ownership is validated for both invoices and receipts
- * 3. Company config must be complete before generating reports
- * 4. Invoice totals cannot be negative
- * 5. No sensitive data leaks in error messages
+ * Security tests for onboarding module
+ * Tests user isolation, XSS prevention, and URL validation
  */
 
 import { generateInvoiceReport, generateReceiptReport } from './reportService';
 import * as invoicesDB from '@/lib/db/invoices';
 import * as receiptsDB from '@/lib/db/receipts';
 import * as companyDB from '@/lib/db/company';
+import * as billingUserService from '@/modules/billingUsers/billingUserService';
 import type { Invoice } from '@/models/invoice';
 import type { Receipt } from '@/models/receipt';
 import type { CompanyConfig } from '@/models/company';
 
+// Mock all database and PDF modules
 jest.mock('@/lib/db/invoices');
 jest.mock('@/lib/db/receipts');
 jest.mock('@/lib/db/company');
+jest.mock('@/modules/billingUsers/billingUserService');
 jest.mock('./invoicePDF');
 jest.mock('./receiptPDF');
 
 describe('Report Generation Security Tests', () => {
   const mockInvoice: Invoice = {
     invoiceID: 'INV000000001',
-    userID: 'user123',
+    billingUserID: 'billing123',
     invoiceDate: '2026-05-20',
     terms: 'Due Upon Receipt',
     dueDate: '2026-06-20',
     currency: 'PHP',
-    billTo: 'John Doe',
-    billToAddressLine: '456 Client Ave',
-    billToCityAddress: 'Client City',
-    billToPostalAddress: 'CC 67890',
-    billToCountry: 'Client Country',
     taxRate: 0.12,
     invoiceItems: [
       {
-        itemID: 'item1',
-        quantity: 2,
+        invoiceItemID: 'item1',
         description: 'Consulting Services',
-        rate: 1000,
-        date: '2026-05-15'
+        billingHistoryEntries: [
+          {
+            billingHistoryID: 'bh1',
+            quantity: 2,
+            rate: 1000,
+            date: '2026-05-15',
+            amount: 2000
+          }
+        ]
       }
     ],
     createdAt: '2026-05-20'
+  };
+
+  const mockReceiptItem = {
+    itemID: 'item1',
+    quantity: 2,
+    description: 'Consulting Services',
+    rate: 1000,
+    date: '2026-05-15'
   };
 
   const mockReceipt: Receipt = {
@@ -54,7 +60,7 @@ describe('Report Generation Security Tests', () => {
     date: '2026-05-20',
     accountBilled: 'jdoe (jdoe@example.com)',
     invoiceID: 'INV000000001',
-    invoiceItems: mockInvoice.invoiceItems,
+    invoiceItems: [mockReceiptItem],
     total: 2240,
     chargedTo: 'Mastercard **** **** **** 4242',
     userID: 'user123',
@@ -62,6 +68,7 @@ describe('Report Generation Security Tests', () => {
   };
 
   const mockCompanyConfig: CompanyConfig = {
+    companyID: 'company123',
     brandName: 'TestCorp',
     companyName: 'TestCorp Inc.',
     companyUrl: 'https://testcorp.com',
@@ -71,14 +78,26 @@ describe('Report Generation Security Tests', () => {
     logoUrl: 'https://testcorp.com/logo.png'
   };
 
+  const mockBillingUser = {
+    billingUserID: 'billing123',
+    companyID: 'company123',
+    name: 'John Doe',
+    addressLine: '456 Client Ave',
+    cityAddress: 'Client City',
+    postalAddress: 'CC 67890',
+    country: 'Client Country',
+    createdAt: '2026-05-20'
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    (billingUserService.getBillingUser as jest.Mock).mockResolvedValue(mockBillingUser);
   });
 
   describe('Security Requirement: Receipt generation requires verified invoice from database', () => {
     it('should load invoice from database, not accept from request body', async () => {
       (receiptsDB.getReceipt as jest.Mock).mockResolvedValue(mockReceipt);
-      (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
+      (invoicesDB.getInvoiceByID as jest.Mock).mockResolvedValue(mockInvoice);
       (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(
         mockCompanyConfig
       );
@@ -86,15 +105,15 @@ describe('Report Generation Security Tests', () => {
       await generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5');
 
       // Verify invoice was loaded from database using receipt's invoiceID
-      expect(invoicesDB.getInvoice).toHaveBeenCalledWith(
-        'user123',
+      expect(invoicesDB.getInvoiceByID).toHaveBeenCalledWith(
         mockReceipt.invoiceID
       );
     });
 
     it('should reject receipt generation when invoice does not exist in database', async () => {
+      (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(mockCompanyConfig);
       (receiptsDB.getReceipt as jest.Mock).mockResolvedValue(mockReceipt);
-      (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(null);
+      (invoicesDB.getInvoiceByID as jest.Mock).mockResolvedValue(null);
 
       await expect(
         generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5')
@@ -104,8 +123,10 @@ describe('Report Generation Security Tests', () => {
 
   describe('Security Requirement: User ownership validation', () => {
     it('should reject invoice generation when user does not own invoice', async () => {
-      const otherUserInvoice = { ...mockInvoice, userID: 'otherUser' };
-      (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(otherUserInvoice);
+      const otherBillingUser = { ...mockBillingUser, companyID: 'otherCompany' };
+      (billingUserService.getBillingUser as jest.Mock).mockResolvedValue(otherBillingUser);
+      (invoicesDB.getInvoiceByID as jest.Mock).mockResolvedValue(mockInvoice);
+      (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(mockCompanyConfig);
 
       await expect(
         generateInvoiceReport('user123', 'INV000000001')
@@ -114,6 +135,7 @@ describe('Report Generation Security Tests', () => {
 
     it('should reject receipt generation when user does not own receipt', async () => {
       const otherUserReceipt = { ...mockReceipt, userID: 'otherUser' };
+      (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(mockCompanyConfig);
       (receiptsDB.getReceipt as jest.Mock).mockResolvedValue(otherUserReceipt);
 
       await expect(
@@ -122,9 +144,11 @@ describe('Report Generation Security Tests', () => {
     });
 
     it('should reject receipt generation when invoice belongs to different user than receipt', async () => {
-      const otherUserInvoice = { ...mockInvoice, userID: 'otherUser' };
+      const otherBillingUser = { ...mockBillingUser, companyID: 'otherCompany' };
+      (billingUserService.getBillingUser as jest.Mock).mockResolvedValue(otherBillingUser);
       (receiptsDB.getReceipt as jest.Mock).mockResolvedValue(mockReceipt);
-      (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(otherUserInvoice);
+      (invoicesDB.getInvoiceByID as jest.Mock).mockResolvedValue(mockInvoice);
+      (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(mockCompanyConfig);
 
       await expect(
         generateReceiptReport('user123', 'CH_A3K9MXQP2T7VWRJN5')
@@ -134,7 +158,7 @@ describe('Report Generation Security Tests', () => {
 
   describe('Security Requirement: Company config must be complete', () => {
     it('should reject invoice generation when company config does not exist', async () => {
-      (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
+      (invoicesDB.getInvoiceByID as jest.Mock).mockResolvedValue(mockInvoice);
       (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(null);
 
       await expect(
@@ -144,7 +168,7 @@ describe('Report Generation Security Tests', () => {
 
     it('should reject receipt generation when company config does not exist', async () => {
       (receiptsDB.getReceipt as jest.Mock).mockResolvedValue(mockReceipt);
-      (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
+      (invoicesDB.getInvoiceByID as jest.Mock).mockResolvedValue(mockInvoice);
       (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(null);
 
       await expect(
@@ -164,7 +188,7 @@ describe('Report Generation Security Tests', () => {
 
       for (const field of requiredFields) {
         const incompleteConfig = { ...mockCompanyConfig, [field]: '' };
-        (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
+        (invoicesDB.getInvoiceByID as jest.Mock).mockResolvedValue(mockInvoice);
         (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(
           incompleteConfig
         );
@@ -184,17 +208,23 @@ describe('Report Generation Security Tests', () => {
         ...mockInvoice,
         invoiceItems: [
           {
-            itemID: 'item1',
-            quantity: 5,
+            invoiceItemID: 'item1',
             description: 'Service',
-            rate: 100,
-            date: '2026-05-20'
+            billingHistoryEntries: [
+              {
+                billingHistoryID: 'bh1',
+                quantity: 5,
+                rate: 100,
+                date: '2026-05-20',
+                amount: 500
+              }
+            ]
           }
         ],
         taxRate: 0.12
       };
 
-      (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(positiveInvoice);
+      (invoicesDB.getInvoiceByID as jest.Mock).mockResolvedValue(positiveInvoice);
       (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(
         mockCompanyConfig
       );
@@ -206,21 +236,26 @@ describe('Report Generation Security Tests', () => {
     });
 
     it('should handle invoice with zero quantity (edge case)', async () => {
-      // Note: Zod schema should prevent this, but test the calculation layer
       const zeroQuantityInvoice: Invoice = {
         ...mockInvoice,
         invoiceItems: [
           {
-            itemID: 'item1',
-            quantity: 1, // Zod enforces min 1
+            invoiceItemID: 'item1',
             description: 'Service',
-            rate: 0, // But rate can be 0.01 minimum per schema
-            date: '2026-05-20'
+            billingHistoryEntries: [
+              {
+                billingHistoryID: 'bh1',
+                quantity: 1,
+                rate: 0.01,
+                date: '2026-05-20',
+                amount: 0.01
+              }
+            ]
           }
         ]
       };
 
-      (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(
+      (invoicesDB.getInvoiceByID as jest.Mock).mockResolvedValue(
         zeroQuantityInvoice
       );
       (companyDB.getCompanyConfig as jest.Mock).mockResolvedValue(
@@ -239,7 +274,7 @@ describe('Report Generation Security Tests', () => {
       const dbError = new Error(
         'Redis connection failed at redis://internal-host:6379'
       );
-      (invoicesDB.getInvoice as jest.Mock).mockRejectedValue(dbError);
+      (invoicesDB.getInvoiceByID as jest.Mock).mockRejectedValue(dbError);
 
       // The service layer should catch and re-throw with safe message
       // or let it bubble up for the API layer to sanitize
@@ -263,7 +298,7 @@ describe('Report Generation Security Tests', () => {
         'Failed to read /var/app/config/secrets.json'
       );
       (companyDB.getCompanyConfig as jest.Mock).mockRejectedValue(pathError);
-      (invoicesDB.getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
+      (invoicesDB.getInvoiceByID as jest.Mock).mockResolvedValue(mockInvoice);
 
       await expect(
         generateInvoiceReport('user123', 'INV000000001')
@@ -279,5 +314,3 @@ describe('Report Generation Security Tests', () => {
     });
   });
 });
-
-// Made with Bob

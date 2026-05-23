@@ -16,6 +16,7 @@ import type { CompanyConfig } from '@/models/company';
 
 describe('generateReceiptPDF', () => {
   const mockCompanyConfig: CompanyConfig = {
+    companyID: 'company123',
     brandName: 'TestCorp',
     companyName: 'TestCorp Inc.',
     companyUrl: 'https://testcorp.com',
@@ -27,34 +28,49 @@ describe('generateReceiptPDF', () => {
 
   const mockInvoice: Invoice = {
     invoiceID: 'INV000000001',
-    userID: 'user123',
+    billingUserID: 'billing123',
     invoiceDate: '2026-05-20',
     terms: 'Due Upon Receipt',
     dueDate: '2026-06-20',
     currency: 'PHP',
-    billTo: 'John Doe',
-    billToAddressLine: '456 Client Ave',
-    billToCityAddress: 'Client City',
-    billToPostalAddress: 'CC 67890',
-    billToCountry: 'Client Country',
     taxRate: 0.12,
     invoiceItems: [
       {
-        itemID: 'item1',
-        quantity: 2,
+        invoiceItemID: 'item1',
         description: 'Consulting Services',
-        rate: 1000,
-        date: '2026-05-15'
+        billingHistoryEntries: [
+          {
+            billingHistoryID: 'bh1',
+            quantity: 2,
+            rate: 1000,
+            date: '2026-05-15',
+            amount: 2000
+          }
+        ]
       },
       {
-        itemID: 'item2',
-        quantity: 1,
+        invoiceItemID: 'item2',
         description: 'Software License',
-        rate: 500,
-        date: '2026-05-16'
+        billingHistoryEntries: [
+          {
+            billingHistoryID: 'bh2',
+            quantity: 1,
+            rate: 500,
+            date: '2026-05-16',
+            amount: 500
+          }
+        ]
       }
     ],
     createdAt: '2026-05-20'
+  };
+
+  const mockReceiptItem = {
+    itemID: 'item1',
+    quantity: 2,
+    description: 'Consulting Services',
+    rate: 1000,
+    date: '2026-05-15'
   };
 
   const mockReceipt: Receipt = {
@@ -62,7 +78,7 @@ describe('generateReceiptPDF', () => {
     date: '2026-05-20',
     accountBilled: 'jdoe (jdoe@example.com)',
     invoiceID: 'INV000000001',
-    invoiceItems: mockInvoice.invoiceItems,
+    invoiceItems: [mockReceiptItem],
     total: 2800, // 2500 subtotal + 300 tax
     chargedTo: 'Mastercard **** **** **** 4242',
     userID: 'user123',
@@ -109,18 +125,32 @@ describe('generateReceiptPDF', () => {
       ...mockInvoice,
       invoiceItems: [
         {
-          itemID: 'item1',
-          quantity: 1,
+          invoiceItemID: 'item1',
           description: 'Single Service',
-          rate: 100,
-          date: '2026-05-20'
+          billingHistoryEntries: [
+            {
+              billingHistoryID: 'bh1',
+              quantity: 1,
+              rate: 100,
+              date: '2026-05-20',
+              amount: 100
+            }
+          ]
         }
       ]
     };
 
     const singleItemReceipt: Receipt = {
       ...mockReceipt,
-      invoiceItems: singleItemInvoice.invoiceItems,
+      invoiceItems: [
+        {
+          itemID: 'item1',
+          quantity: 1,
+          description: 'Single Service',
+          rate: 100,
+          date: '2026-05-20'
+        }
+      ],
       total: 112 // 100 + 12% tax
     };
 
@@ -137,6 +167,51 @@ describe('generateReceiptPDF', () => {
   it('should handle receipt with multiple line items', async () => {
     const multiItemInvoice: Invoice = {
       ...mockInvoice,
+      invoiceItems: [
+        {
+          invoiceItemID: 'item1',
+          description: 'Service A',
+          billingHistoryEntries: [
+            {
+              billingHistoryID: 'bh1',
+              quantity: 2,
+              rate: 100,
+              date: '2026-05-15',
+              amount: 200
+            }
+          ]
+        },
+        {
+          invoiceItemID: 'item2',
+          description: 'Service B',
+          billingHistoryEntries: [
+            {
+              billingHistoryID: 'bh2',
+              quantity: 3,
+              rate: 200,
+              date: '2026-05-16',
+              amount: 600
+            }
+          ]
+        },
+        {
+          invoiceItemID: 'item3',
+          description: 'Service C',
+          billingHistoryEntries: [
+            {
+              billingHistoryID: 'bh3',
+              quantity: 1,
+              rate: 300,
+              date: '2026-05-17',
+              amount: 300
+            }
+          ]
+        }
+      ]
+    };
+
+    const multiItemReceipt: Receipt = {
+      ...mockReceipt,
       invoiceItems: [
         {
           itemID: 'item1',
@@ -159,13 +234,8 @@ describe('generateReceiptPDF', () => {
           rate: 300,
           date: '2026-05-17'
         }
-      ]
-    };
-
-    const multiItemReceipt: Receipt = {
-      ...mockReceipt,
-      invoiceItems: multiItemInvoice.invoiceItems,
-      total: 1120 // 1000 + 12% tax
+      ],
+      total: 1232 // 1100 + 12% tax
     };
 
     const pdfBuffer = await generateReceiptPDF(
@@ -234,6 +304,7 @@ describe('generateReceiptPDF', () => {
 
   it('should handle long company branding information', async () => {
     const longBrandingConfig: CompanyConfig = {
+      companyID: 'company123',
       brandName: 'Very Long Brand Name Corporation International',
       companyName: 'Very Long Company Name Corporation International Limited',
       companyUrl: 'https://verylongcompanyname.example.com',
@@ -253,5 +324,3 @@ describe('generateReceiptPDF', () => {
     expect(pdfBuffer.length).toBeGreaterThan(0);
   });
 });
-
-// Made with Bob

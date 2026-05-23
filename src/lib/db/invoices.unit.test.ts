@@ -1,16 +1,21 @@
+process.env.USE_REDIS = 'true';
 import { mockRedis } from '@/lib/__mocks__/redis';
-import {
+import { Invoice, InvoiceItemWithHistory } from '@/models/invoice';
+
+// Mock the redis module - commented out to prevent Jest from auto-mocking the mock itself
+// jest.mock('@/lib/redis');
+
+// Require invoices sequentially after USE_REDIS is set to true
+/* eslint-disable @typescript-eslint/no-require-imports */
+const {
   createInvoice,
   getInvoice,
   updateInvoice,
   deleteInvoice,
   listInvoices,
   getNextInvoiceSequence
-} from './invoices';
-import { Invoice, InvoiceItem } from '@/models/invoice';
-
-// Mock the redis module
-jest.mock('@/lib/redis');
+} = require('./invoices') as typeof import('./invoices');
+/* eslint-enable @typescript-eslint/no-require-imports */
 
 describe('invoices database operations', () => {
   beforeEach(() => {
@@ -20,12 +25,18 @@ describe('invoices database operations', () => {
 
   const userID = '550e8400-e29b-41d4-a716-446655440000';
 
-  const validInvoiceItem: InvoiceItem = {
-    itemID: 'item-001',
-    quantity: 2,
+  const validInvoiceItem: InvoiceItemWithHistory = {
+    invoiceItemID: 'item-001',
     description: 'Test Item',
-    rate: 100.0,
-    date: '2026-05-20'
+    billingHistoryEntries: [
+      {
+        billingHistoryID: 'bh-001',
+        quantity: 2,
+        rate: 100.0,
+        date: '2026-05-20',
+        amount: 200.0
+      }
+    ]
   };
 
   const validInvoice: Invoice = {
@@ -34,14 +45,9 @@ describe('invoices database operations', () => {
     terms: 'Due Upon Receipt',
     dueDate: '2026-06-20',
     currency: 'PHP',
-    billTo: 'Test Client',
-    billToAddressLine: '123 Test St',
-    billToCityAddress: 'Test City',
-    billToPostalAddress: '12345',
-    billToCountry: 'Philippines',
     invoiceItems: [validInvoiceItem],
     taxRate: 0.12,
-    userID,
+    billingUserID: userID,
     createdAt: '2026-05-20'
   };
 
@@ -58,11 +64,11 @@ describe('invoices database operations', () => {
     it('should reject invoice with mismatched userID', async () => {
       const mismatchedInvoice = {
         ...validInvoice,
-        userID: 'different-user-id'
+        billingUserID: 'different-user-id'
       };
 
       await expect(createInvoice(userID, mismatchedInvoice)).rejects.toThrow(
-        'Invoice userID does not match provided userID'
+        'Invoice billingUserID does not match provided billingUserID'
       );
     });
 
@@ -148,7 +154,6 @@ describe('invoices database operations', () => {
 
       const updated = await getInvoice(userID, validInvoice.invoiceID);
       expect(updated?.terms).toBe('Net 30');
-      expect(updated?.billTo).toBe(validInvoice.billTo); // Unchanged
     });
 
     it('should throw error for non-existent invoice', async () => {
@@ -160,16 +165,16 @@ describe('invoices database operations', () => {
     it('should reject attempt to change userID', async () => {
       await expect(
         updateInvoice(userID, validInvoice.invoiceID, {
-          userID: 'different-user-id'
-        })
-      ).rejects.toThrow('Cannot change invoice userID');
+          billingUserID: 'different-user-id'
+        } as unknown as Partial<Invoice>)
+      ).rejects.toThrow('Cannot change invoice billingUserID');
     });
 
     it('should reject attempt to change invoiceID', async () => {
       await expect(
         updateInvoice(userID, validInvoice.invoiceID, {
           invoiceID: 'INV000000002'
-        })
+        } as unknown as Partial<Invoice>)
       ).rejects.toThrow('Cannot change invoiceID');
     });
 
@@ -252,7 +257,7 @@ describe('invoices database operations', () => {
       const otherUserID = 'other-user-id';
       const otherInvoice: Invoice = {
         ...validInvoice,
-        userID: otherUserID
+        billingUserID: otherUserID
       };
 
       await createInvoice(userID, validInvoice);

@@ -15,6 +15,7 @@ describe('Onboarding Security Tests', () => {
   const user2ID = 'security-user-002';
 
   const validConfig: CompanyConfig = {
+    companyID: 'company-123',
     brandName: 'Security Test Brand',
     companyName: 'Security Test Company Inc.',
     companyUrl: 'https://security-test.com',
@@ -270,6 +271,7 @@ describe('Onboarding Security Tests', () => {
 
     it('should accept fields at maximum allowed length', async () => {
       const maxLengthConfig: CompanyConfig = {
+        companyID: 'company-123',
         brandName: 'a'.repeat(100),
         companyName: 'b'.repeat(200),
         companyUrl: 'https://example.com',

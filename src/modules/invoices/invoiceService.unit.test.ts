@@ -1,18 +1,22 @@
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import {
   createInvoice,
   getInvoice,
   updateInvoice,
   deleteInvoice,
-  listUserInvoices,
+  listBillingUserInvoices,
   calculateInvoiceTotals
 } from './invoiceService';
 import * as dbInvoices from '@/lib/db/invoices';
+import * as billingHistoryDB from '@/lib/db/billingHistory';
+import * as invoiceItemMastersDB from '@/lib/db/invoiceItemMasters';
 import * as idGenerator from '@/lib/idGenerator';
 import { Invoice } from '@/models/invoice';
 
 // Mock database operations
 jest.mock('@/lib/db/invoices');
+jest.mock('@/lib/db/billingHistory');
+jest.mock('@/lib/db/invoiceItemMasters');
 jest.mock('@/lib/idGenerator');
 
 describe('invoiceService', () => {
@@ -20,41 +24,48 @@ describe('invoiceService', () => {
     jest.clearAllMocks();
   });
 
+  const mockInvoice: Invoice = {
+    invoiceID: 'INV000000001',
+    billingUserID: 'billing-123',
+    invoiceDate: '2026-05-20',
+    terms: 'Due Upon Receipt',
+    dueDate: '2026-05-27',
+    currency: 'PHP',
+    invoiceItems: [
+      {
+        invoiceItemID: 'item-1',
+        description: 'Service A',
+        billingHistoryEntries: [
+          {
+            billingHistoryID: 'bh-1',
+            quantity: 2,
+            rate: 100,
+            date: '2026-05-20',
+            amount: 200
+          }
+        ]
+      },
+      {
+        invoiceItemID: 'item-2',
+        description: 'Service B',
+        billingHistoryEntries: [
+          {
+            billingHistoryID: 'bh-2',
+            quantity: 3,
+            rate: 50,
+            date: '2026-05-20',
+            amount: 150
+          }
+        ]
+      }
+    ],
+    taxRate: 0.12,
+    createdAt: '2026-05-20'
+  };
+
   describe('calculateInvoiceTotals', () => {
     it('should calculate subtotal, tax, and total correctly', () => {
-      const invoice: Invoice = {
-        invoiceID: 'INV000000001',
-        userID: 'user-123',
-        invoiceDate: '2026-05-20',
-        terms: 'Due Upon Receipt',
-        dueDate: '2026-05-27',
-        currency: 'PHP',
-        billTo: 'Test Client',
-        billToAddressLine: '123 Test St',
-        billToCityAddress: 'Test City',
-        billToPostalAddress: '12345',
-        billToCountry: 'Philippines',
-        invoiceItems: [
-          {
-            itemID: 'item-1',
-            quantity: 2,
-            description: 'Service A',
-            rate: 100,
-            date: '2026-05-20'
-          },
-          {
-            itemID: 'item-2',
-            quantity: 3,
-            description: 'Service B',
-            rate: 50,
-            date: '2026-05-20'
-          }
-        ],
-        taxRate: 0.12,
-        createdAt: '2026-05-20'
-      };
-
-      const result = calculateInvoiceTotals(invoice);
+      const result = calculateInvoiceTotals(mockInvoice);
 
       expect(result.subtotal).toBe(350); // (2*100) + (3*50)
       expect(result.taxAmount).toBe(42); // 350 * 0.12
@@ -64,16 +75,11 @@ describe('invoiceService', () => {
     it('should guard against negative totals', () => {
       const invoice: Invoice = {
         invoiceID: 'INV000000001',
-        userID: 'user-123',
+        billingUserID: 'billing-123',
         invoiceDate: '2026-05-20',
         terms: 'Due Upon Receipt',
         dueDate: '2026-05-27',
         currency: 'PHP',
-        billTo: 'Test Client',
-        billToAddressLine: '123 Test St',
-        billToCityAddress: 'Test City',
-        billToPostalAddress: '12345',
-        billToCountry: 'Philippines',
         invoiceItems: [],
         taxRate: 0.12,
         createdAt: '2026-05-20'
@@ -89,41 +95,48 @@ describe('invoiceService', () => {
 
   describe('createInvoice', () => {
     it('should create invoice with generated ID', async () => {
-      (dbInvoices.getNextInvoiceSequence as jest.Mock).mockResolvedValue(1);
-      (idGenerator.generateInvoiceID as jest.Mock).mockReturnValue(
-        'INV000000001'
-      );
-      (dbInvoices.createInvoice as jest.Mock).mockResolvedValue(undefined);
+      const mockHistory = [
+        {
+          billingHistoryID: 'bh-1',
+          billingUserID: 'billing-123',
+          invoiceItemID: 'item-1',
+          quantity: 2,
+          rate: 100,
+          date: '2026-05-20',
+          billedStatus: 'unbilled',
+          invoiceID: null,
+          createdAt: '2026-05-20'
+        }
+      ];
+
+      const mockItemMaster = {
+        invoiceItemID: 'item-1',
+        companyID: 'company-123',
+        description: 'Service A',
+        defaultRate: 100,
+        createdAt: '2026-05-20'
+      };
+
+      (billingHistoryDB.getBillingHistoriesByIDs as any).mockResolvedValue(mockHistory);
+      (invoiceItemMastersDB.getInvoiceItemMaster as any).mockResolvedValue(mockItemMaster);
+      (dbInvoices.getNextInvoiceSequence as any).mockResolvedValue(1);
+      (idGenerator.generateInvoiceID as any).mockReturnValue('INV000000001');
+      (dbInvoices.createInvoice as any).mockResolvedValue(undefined);
+      (billingHistoryDB.markBillingHistoryAsBilled as any).mockResolvedValue(undefined);
 
       const invoiceData = {
         invoiceDate: '2026-05-20',
         terms: 'Due Upon Receipt',
         dueDate: '2026-05-27',
         currency: 'PHP' as const,
-        billTo: 'Test Client',
-        billToAddressLine: '123 Test St',
-        billToCityAddress: 'Test City',
-        billToPostalAddress: '12345',
-        billToCountry: 'Philippines',
-        invoiceItems: [
-          {
-            itemID: 'item-1',
-            quantity: 1,
-            description: 'Service',
-            rate: 100,
-            date: '2026-05-20'
-          }
-        ],
         taxRate: 0.12
       };
 
-      const result = await createInvoice('user-123', invoiceData);
+      const result = await createInvoice('billing-123', ['bh-1'], invoiceData);
 
       expect(result.invoiceID).toBe('INV000000001');
-      expect(result.userID).toBe('user-123');
-      expect(dbInvoices.getNextInvoiceSequence).toHaveBeenCalledWith(
-        'user-123'
-      );
+      expect(result.billingUserID).toBe('billing-123');
+      expect(dbInvoices.getNextInvoiceSequence).toHaveBeenCalledWith('billing-123');
       expect(idGenerator.generateInvoiceID).toHaveBeenCalledWith(1);
       expect(dbInvoices.createInvoice).toHaveBeenCalled();
     });
@@ -131,34 +144,17 @@ describe('invoiceService', () => {
 
   describe('getInvoice', () => {
     it('should return invoice', async () => {
-      const mockInvoice: Invoice = {
-        invoiceID: 'INV000000001',
-        userID: 'user-123',
-        invoiceDate: '2026-05-20',
-        terms: 'Due Upon Receipt',
-        dueDate: '2026-05-27',
-        currency: 'PHP',
-        billTo: 'Test Client',
-        billToAddressLine: '123 Test St',
-        billToCityAddress: 'Test City',
-        billToPostalAddress: '12345',
-        billToCountry: 'Philippines',
-        invoiceItems: [],
-        taxRate: 0.12,
-        createdAt: '2026-05-20'
-      };
+      (dbInvoices.getInvoice as any).mockResolvedValue(mockInvoice);
 
-      (dbInvoices.getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
-
-      const result = await getInvoice('user-123', 'INV000000001');
+      const result = await getInvoice('billing-123', 'INV000000001');
 
       expect(result).toEqual(mockInvoice);
     });
 
     it('should return null if not found', async () => {
-      (dbInvoices.getInvoice as jest.Mock).mockResolvedValue(null);
+      (dbInvoices.getInvoice as any).mockResolvedValue(null);
 
-      const result = await getInvoice('user-123', 'INV000000001');
+      const result = await getInvoice('billing-123', 'INV000000001');
 
       expect(result).toBeNull();
     });
@@ -166,37 +162,20 @@ describe('invoiceService', () => {
 
   describe('updateInvoice', () => {
     it('should update invoice and return updated version', async () => {
-      const existingInvoice: Invoice = {
-        invoiceID: 'INV000000001',
-        userID: 'user-123',
-        invoiceDate: '2026-05-20',
-        terms: 'Due Upon Receipt',
-        dueDate: '2026-05-27',
-        currency: 'PHP',
-        billTo: 'Test Client',
-        billToAddressLine: '123 Test St',
-        billToCityAddress: 'Test City',
-        billToPostalAddress: '12345',
-        billToCountry: 'Philippines',
-        invoiceItems: [],
-        taxRate: 0.12,
-        createdAt: '2026-05-20'
-      };
+      const updatedInvoice = { ...mockInvoice, terms: 'Net 30' };
 
-      const updatedInvoice = { ...existingInvoice, terms: 'Net 30' };
-
-      (dbInvoices.getInvoice as jest.Mock)
-        .mockResolvedValueOnce(existingInvoice)
+      (dbInvoices.getInvoice as any)
+        .mockResolvedValueOnce(mockInvoice)
         .mockResolvedValueOnce(updatedInvoice);
-      (dbInvoices.updateInvoice as jest.Mock).mockResolvedValue(undefined);
+      (dbInvoices.updateInvoice as any).mockResolvedValue(undefined);
 
-      const result = await updateInvoice('user-123', 'INV000000001', {
+      const result = await updateInvoice('billing-123', 'INV000000001', {
         terms: 'Net 30'
       });
 
       expect(result.terms).toBe('Net 30');
       expect(dbInvoices.updateInvoice).toHaveBeenCalledWith(
-        'user-123',
+        'billing-123',
         'INV000000001',
         {
           terms: 'Net 30'
@@ -205,56 +184,40 @@ describe('invoiceService', () => {
     });
 
     it('should throw error if invoice not found', async () => {
-      (dbInvoices.getInvoice as jest.Mock).mockResolvedValue(null);
+      (dbInvoices.getInvoice as any).mockResolvedValue(null);
 
       await expect(
-        updateInvoice('user-123', 'INV000000001', { terms: 'Net 30' })
+        updateInvoice('billing-123', 'INV000000001', { terms: 'Net 30' })
       ).rejects.toThrow('Invoice not found');
     });
   });
 
   describe('deleteInvoice', () => {
-    it('should delete invoice', async () => {
-      (dbInvoices.deleteInvoice as jest.Mock).mockResolvedValue(undefined);
+    it('should delete invoice and unmark billing history', async () => {
+      (dbInvoices.getInvoice as any).mockResolvedValue(mockInvoice);
+      (billingHistoryDB.unmarkBillingHistoryAsBilled as any).mockResolvedValue(undefined);
+      (dbInvoices.deleteInvoice as any).mockResolvedValue(undefined);
 
-      await deleteInvoice('user-123', 'INV000000001');
+      await deleteInvoice('billing-123', 'INV000000001');
 
       expect(dbInvoices.deleteInvoice).toHaveBeenCalledWith(
-        'user-123',
+        'billing-123',
         'INV000000001'
       );
+      expect(billingHistoryDB.unmarkBillingHistoryAsBilled).toHaveBeenCalledWith(['bh-1', 'bh-2']);
     });
   });
 
-  describe('listUserInvoices', () => {
+  describe('listBillingUserInvoices', () => {
     it('should return list of invoices', async () => {
-      const mockInvoices: Invoice[] = [
-        {
-          invoiceID: 'INV000000001',
-          userID: 'user-123',
-          invoiceDate: '2026-05-20',
-          terms: 'Due Upon Receipt',
-          dueDate: '2026-05-27',
-          currency: 'PHP',
-          billTo: 'Client A',
-          billToAddressLine: '123 Test St',
-          billToCityAddress: 'Test City',
-          billToPostalAddress: '12345',
-          billToCountry: 'Philippines',
-          invoiceItems: [],
-          taxRate: 0.12,
-          createdAt: '2026-05-20'
-        }
-      ];
+      const mockInvoices: Invoice[] = [mockInvoice];
 
-      (dbInvoices.listInvoices as jest.Mock).mockResolvedValue(mockInvoices);
+      (dbInvoices.listInvoices as any).mockResolvedValue(mockInvoices);
 
-      const result = await listUserInvoices('user-123');
+      const result = await listBillingUserInvoices('billing-123');
 
       expect(result).toEqual(mockInvoices);
-      expect(dbInvoices.listInvoices).toHaveBeenCalledWith('user-123');
+      expect(dbInvoices.listInvoices).toHaveBeenCalledWith('billing-123');
     });
   });
 });
-
-// Made with Bob
