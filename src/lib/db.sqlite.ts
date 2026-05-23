@@ -50,6 +50,7 @@ function runMigrations(database: import('better-sqlite3').Database): void {
 
     CREATE TABLE IF NOT EXISTS company_configs (
       user_id TEXT PRIMARY KEY,
+      company_id TEXT NOT NULL UNIQUE,
       brand_name TEXT NOT NULL,
       company_name TEXT NOT NULL,
       company_url TEXT NOT NULL,
@@ -59,37 +60,66 @@ function runMigrations(database: import('better-sqlite3').Database): void {
       logo_url TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS billing_users (
+      billing_user_id TEXT PRIMARY KEY,
+      company_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      address_line TEXT NOT NULL,
+      city_address TEXT NOT NULL,
+      postal_address TEXT NOT NULL,
+      country TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (company_id) REFERENCES company_configs(company_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS invoice_item_masters (
+      invoice_item_id TEXT PRIMARY KEY,
+      company_id TEXT NOT NULL,
+      description TEXT NOT NULL,
+      default_rate REAL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (company_id) REFERENCES company_configs(company_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS billing_history (
+      billing_history_id TEXT PRIMARY KEY,
+      billing_user_id TEXT NOT NULL,
+      invoice_item_id TEXT NOT NULL,
+      quantity INTEGER NOT NULL,
+      rate REAL NOT NULL,
+      date TEXT NOT NULL,
+      billed_status TEXT NOT NULL DEFAULT 'unbilled',
+      invoice_id TEXT,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (billing_user_id) REFERENCES billing_users(billing_user_id),
+      FOREIGN KEY (invoice_item_id) REFERENCES invoice_item_masters(invoice_item_id),
+      FOREIGN KEY (invoice_id) REFERENCES invoices(invoice_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_billing_history_user
+      ON billing_history(billing_user_id);
+    CREATE INDEX IF NOT EXISTS idx_billing_history_item
+      ON billing_history(invoice_item_id);
+    CREATE INDEX IF NOT EXISTS idx_billing_history_status
+      ON billing_history(billed_status);
+
     CREATE TABLE IF NOT EXISTS invoice_sequences (
-      user_id TEXT PRIMARY KEY,
-      next_value INTEGER NOT NULL DEFAULT 1
+      billing_user_id TEXT PRIMARY KEY,
+      next_value INTEGER NOT NULL DEFAULT 1,
+      FOREIGN KEY (billing_user_id) REFERENCES billing_users(billing_user_id)
     );
 
     CREATE TABLE IF NOT EXISTS invoices (
-      invoice_id TEXT NOT NULL,
-      user_id TEXT NOT NULL,
+      invoice_id TEXT PRIMARY KEY,
+      billing_user_id TEXT NOT NULL,
       invoice_date TEXT NOT NULL,
       terms TEXT NOT NULL,
       due_date TEXT NOT NULL,
       currency TEXT NOT NULL,
-      bill_to TEXT NOT NULL,
-      bill_to_address_line TEXT NOT NULL,
-      bill_to_city_address TEXT NOT NULL,
-      bill_to_postal_address TEXT NOT NULL,
-      bill_to_country TEXT NOT NULL,
       invoice_items TEXT NOT NULL,
       tax_rate REAL NOT NULL,
       created_at TEXT NOT NULL,
-      PRIMARY KEY (invoice_id, user_id)
-    );
-
-    CREATE TABLE IF NOT EXISTS invoice_items (
-      item_id TEXT NOT NULL,
-      user_id TEXT NOT NULL,
-      quantity INTEGER NOT NULL,
-      description TEXT NOT NULL,
-      rate REAL NOT NULL,
-      date TEXT NOT NULL,
-      PRIMARY KEY (item_id, user_id)
+      FOREIGN KEY (billing_user_id) REFERENCES billing_users(billing_user_id)
     );
 
     CREATE TABLE IF NOT EXISTS receipts (

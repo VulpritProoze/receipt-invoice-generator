@@ -69,6 +69,7 @@
 import PDFDocument from 'pdfkit';
 import type { Invoice } from '@/models/invoice';
 import type { CompanyConfig } from '@/models/company';
+import type { BillingUser } from '@/models/billingUser';
 
 /**
  * Generate an invoice PDF matching the template layout
@@ -79,7 +80,8 @@ import type { CompanyConfig } from '@/models/company';
  */
 export async function generateInvoicePDF(
   invoice: Invoice,
-  companyConfig: CompanyConfig
+  companyConfig: CompanyConfig,
+  billingUser: BillingUser
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
@@ -203,15 +205,15 @@ export async function generateInvoicePDF(
       yPos += 20;
 
       doc.fontSize(10).font('Helvetica');
-      doc.text(invoice.billTo, 50, yPos);
+      doc.text(billingUser.name, 50, yPos);
       yPos += 15;
-      doc.text(invoice.billToAddressLine, 50, yPos);
+      doc.text(billingUser.addressLine, 50, yPos);
       yPos += 12;
-      doc.text(invoice.billToCityAddress, 50, yPos);
+      doc.text(billingUser.cityAddress, 50, yPos);
       yPos += 12;
-      doc.text(invoice.billToPostalAddress, 50, yPos);
+      doc.text(billingUser.postalAddress, 50, yPos);
       yPos += 12;
-      doc.text(invoice.billToCountry, 50, yPos);
+      doc.text(billingUser.country, 50, yPos);
       yPos += 25;
 
       // ===== LINE ITEMS TABLE =====
@@ -237,29 +239,66 @@ export async function generateInvoicePDF(
 
       yPos += 10;
 
-      // Table rows
+      // Table rows - grouped by service type
       doc.font('Helvetica');
       let subtotal = 0;
 
       for (const item of invoice.invoiceItems) {
-        const amount = item.quantity * item.rate;
-        subtotal += amount;
+        // Service heading (bold, larger)
+        doc
+          .fontSize(11)
+          .font('Helvetica-Bold')
+          .text(item.description, colDescription, yPos, { width: 250 });
+        yPos += 18;
 
-        doc.text(item.quantity.toString(), colQuantity, yPos, {
-          width: 60,
-          align: 'right'
-        });
-        doc.text(item.description, colDescription, yPos, { width: 250 });
-        doc.text(formatAmount(item.rate), colRate, yPos, {
-          width: 90,
-          align: 'right'
-        });
-        doc.text(formatAmount(amount), colAmount, yPos, {
-          width: 82,
-          align: 'right'
-        });
+        // Individual billing history entries for this service
+        doc.fontSize(10).font('Helvetica');
+        let itemSubtotal = 0;
 
-        yPos += 20;
+        for (const entry of item.billingHistoryEntries) {
+          const amount = entry.amount;
+          itemSubtotal += amount;
+          subtotal += amount;
+
+          // Date in description column (indented)
+          doc.text(entry.date, colDescription + 10, yPos, { width: 240 });
+
+          // Quantity
+          doc.text(entry.quantity.toString(), colQuantity, yPos, {
+            width: 60,
+            align: 'right'
+          });
+
+          // Rate
+          doc.text(formatAmount(entry.rate), colRate, yPos, {
+            width: 90,
+            align: 'right'
+          });
+
+          // Amount
+          doc.text(formatAmount(amount), colAmount, yPos, {
+            width: 82,
+            align: 'right'
+          });
+
+          yPos += 16;
+        }
+
+        // Item subtotal row (indented, italic)
+        doc
+          .font('Helvetica-Oblique')
+          .text('Item Subtotal:', colRate - 50, yPos, {
+            width: 140,
+            align: 'right'
+          });
+        doc
+          .font('Helvetica-Bold')
+          .text(formatAmount(itemSubtotal), colAmount, yPos, {
+            width: 82,
+            align: 'right'
+          });
+
+        yPos += 25; // Extra space between service groups
       }
 
       // ===== TOTALS SECTION =====

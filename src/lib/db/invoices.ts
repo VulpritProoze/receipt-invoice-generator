@@ -1,9 +1,7 @@
 import { redis } from '@/lib/redis';
 import {
   Invoice,
-  invoiceSchema,
-  InvoiceItem,
-  invoiceItemSchema
+  invoiceSchema
 } from '@/models/invoice';
 // SQLite is loaded lazily (dynamic import) so it is never evaluated when USE_REDIS=true
 
@@ -21,7 +19,7 @@ const useRedis = process.env.USE_REDIS === 'true';
  * Create a new invoice.
  */
 export async function createInvoice(
-  userID: string,
+  billingUserID: string,
   invoice: Invoice
 ): Promise<void> {
   if (useRedis) {
@@ -32,25 +30,25 @@ export async function createInvoice(
     // Validate invoice data before storing
     const validated = invoiceSchema.parse(invoice);
 
-    // Verify userID matches
-    if (validated.userID !== userID) {
-      throw new Error('Invoice userID does not match provided userID');
+    // Verify billingUserID matches
+    if (validated.billingUserID !== billingUserID) {
+      throw new Error('Invoice billingUserID does not match provided billingUserID');
     }
 
     // Store invoice data
-    await redis.set(`invoice:${userID}:${validated.invoiceID}`, validated);
+    await redis.set(`invoice:${billingUserID}:${validated.invoiceID}`, validated);
   } else {
     const sqliteInvoices = await import('./sqlite/invoices');
-    return sqliteInvoices.createInvoice(userID, invoice);
+    return sqliteInvoices.createInvoice(billingUserID, invoice);
   }
 }
 
 /**
- * Get an invoice by userID and invoiceID.
+ * Get an invoice by billingUserID and invoiceID.
  * Returns null if invoice does not exist.
  */
 export async function getInvoice(
-  userID: string,
+  billingUserID: string,
   invoiceID: string
 ): Promise<Invoice | null> {
   if (useRedis) {
@@ -58,7 +56,7 @@ export async function getInvoice(
       throw new Error('Redis client not initialized');
     }
 
-    const data = await redis.get<unknown>(`invoice:${userID}:${invoiceID}`);
+    const data = await redis.get<unknown>(`invoice:${billingUserID}:${invoiceID}`);
 
     if (!data) {
       return null;
@@ -75,7 +73,41 @@ export async function getInvoice(
     }
   } else {
     const sqliteInvoices = await import('./sqlite/invoices');
-    return sqliteInvoices.getInvoice(userID, invoiceID);
+    return sqliteInvoices.getInvoice(billingUserID, invoiceID);
+  }
+}
+
+/**
+ * Get an invoice by invoiceID alone.
+ * Returns null if invoice does not exist.
+ */
+export async function getInvoiceByID(invoiceID: string): Promise<Invoice | null> {
+  if (useRedis) {
+    if (!redis) {
+      throw new Error('Redis client not initialized');
+    }
+
+    const keys = await redis.keys(`invoice:*:${invoiceID}`);
+    if (keys.length === 0) {
+      return null;
+    }
+
+    const data = await redis.get<unknown>(keys[0]);
+    if (!data) {
+      return null;
+    }
+
+    try {
+      return invoiceSchema.parse(data);
+    } catch (error) {
+      throw new Error(
+        `Invalid invoice data in database for invoiceID: ${invoiceID}. Data integrity check failed.`,
+        { cause: error }
+      );
+    }
+  } else {
+    const sqliteInvoices = await import('./sqlite/invoices');
+    return sqliteInvoices.getInvoiceByID(invoiceID);
   }
 }
 
@@ -84,7 +116,7 @@ export async function getInvoice(
  * Only updates provided fields, leaves others unchanged.
  */
 export async function updateInvoice(
-  userID: string,
+  billingUserID: string,
   invoiceID: string,
   updates: Partial<Invoice>
 ): Promise<void> {
@@ -94,7 +126,7 @@ export async function updateInvoice(
     }
 
     // Get existing invoice
-    const existing = await getInvoice(userID, invoiceID);
+    const existing = await getInvoice(billingUserID, invoiceID);
 
     if (!existing) {
       throw new Error(`Invoice not found: ${invoiceID}`);
@@ -106,9 +138,9 @@ export async function updateInvoice(
     // Validate merged data
     const validated = invoiceSchema.parse(updated);
 
-    // Verify userID hasn't changed
-    if (validated.userID !== userID) {
-      throw new Error('Cannot change invoice userID');
+    // Verify billingUserID hasn't changed
+    if (validated.billingUserID !== billingUserID) {
+      throw new Error('Cannot change invoice billingUserID');
     }
 
     // Verify invoiceID hasn't changed
@@ -117,10 +149,10 @@ export async function updateInvoice(
     }
 
     // Store updated invoice
-    await redis.set(`invoice:${userID}:${invoiceID}`, validated);
+    await redis.set(`invoice:${billingUserID}:${invoiceID}`, validated);
   } else {
     const sqliteInvoices = await import('./sqlite/invoices');
-    return sqliteInvoices.updateInvoice(userID, invoiceID, updates);
+    return sqliteInvoices.updateInvoice(billingUserID, invoiceID, updates);
   }
 }
 
@@ -128,7 +160,7 @@ export async function updateInvoice(
  * Delete an invoice.
  */
 export async function deleteInvoice(
-  userID: string,
+  billingUserID: string,
   invoiceID: string
 ): Promise<void> {
   if (useRedis) {
@@ -137,25 +169,25 @@ export async function deleteInvoice(
     }
 
     // Delete invoice data - idempotent operation
-    await redis.del(`invoice:${userID}:${invoiceID}`);
+    await redis.del(`invoice:${billingUserID}:${invoiceID}`);
   } else {
     const sqliteInvoices = await import('./sqlite/invoices');
-    return sqliteInvoices.deleteInvoice(userID, invoiceID);
+    return sqliteInvoices.deleteInvoice(billingUserID, invoiceID);
   }
 }
 
 /**
- * List all invoices for a user.
- * Returns an empty array if user has no invoices.
+ * List all invoices for a billing user.
+ * Returns an empty array if billing user has no invoices.
  */
-export async function listInvoices(userID: string): Promise<Invoice[]> {
+export async function listInvoices(billingUserID: string): Promise<Invoice[]> {
   if (useRedis) {
     if (!redis) {
       throw new Error('Redis client not initialized');
     }
 
-    // Find all invoice keys for this user
-    const keys = await redis.keys(`invoice:${userID}:*`);
+    // Find all invoice keys for this billing user
+    const keys = await redis.keys(`invoice:${billingUserID}:*`);
 
     if (keys.length === 0) {
       return [];
@@ -182,147 +214,26 @@ export async function listInvoices(userID: string): Promise<Invoice[]> {
     return invoices.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   } else {
     const sqliteInvoices = await import('./sqlite/invoices');
-    return sqliteInvoices.listInvoices(userID);
+    return sqliteInvoices.listInvoices(billingUserID);
   }
 }
 
 /**
- * Get the next invoice sequence number for a user.
+ * Get the next invoice sequence number for a billing user.
  * Used to generate invoice IDs in format INV000000001, INV000000002, etc.
  */
-export async function getNextInvoiceSequence(userID: string): Promise<number> {
+export async function getNextInvoiceSequence(billingUserID: string): Promise<number> {
   if (useRedis) {
     if (!redis) {
       throw new Error('Redis client not initialized');
     }
 
     // Increment and return the sequence counter
-    const sequence = await redis.incr(`invoice:sequence:${userID}`);
+    const sequence = await redis.incr(`invoice:sequence:${billingUserID}`);
 
     return sequence;
   } else {
     const sqliteInvoices = await import('./sqlite/invoices');
-    return sqliteInvoices.getNextInvoiceSequence(userID);
-  }
-}
-
-/**
- * Create a standalone invoice item.
- * Used for importing billing history before invoices are generated.
- */
-export async function createInvoiceItem(
-  userID: string,
-  item: InvoiceItem
-): Promise<void> {
-  if (useRedis) {
-    if (!redis) {
-      throw new Error('Redis client not initialized');
-    }
-
-    // Validate item data before storing
-    const validated = invoiceItemSchema.parse(item);
-
-    // Store invoice item data
-    await redis.set(`invoiceItem:${userID}:${validated.itemID}`, validated);
-  } else {
-    const sqliteInvoices = await import('./sqlite/invoices');
-    return sqliteInvoices.createInvoiceItem(userID, item);
-  }
-}
-
-/**
- * Get an invoice item by userID and itemID.
- * Returns null if item does not exist.
- */
-export async function getInvoiceItem(
-  userID: string,
-  itemID: string
-): Promise<InvoiceItem | null> {
-  if (useRedis) {
-    if (!redis) {
-      throw new Error('Redis client not initialized');
-    }
-
-    const data = await redis.get<unknown>(`invoiceItem:${userID}:${itemID}`);
-
-    if (!data) {
-      return null;
-    }
-
-    // Validate retrieved data through schema
-    try {
-      return invoiceItemSchema.parse(data);
-    } catch (error) {
-      throw new Error(
-        `Invalid invoice item data in database for itemID: ${itemID}. Data integrity check failed.`,
-        { cause: error }
-      );
-    }
-  } else {
-    const sqliteInvoices = await import('./sqlite/invoices');
-    return sqliteInvoices.getInvoiceItem(userID, itemID);
-  }
-}
-
-/**
- * List all invoice items for a user.
- * Returns an empty array if user has no items.
- * Used for invoice generation UI to select items.
- */
-export async function listInvoiceItems(userID: string): Promise<InvoiceItem[]> {
-  if (useRedis) {
-    if (!redis) {
-      throw new Error('Redis client not initialized');
-    }
-
-    // Find all invoice item keys for this user
-    const keys = await redis.keys(`invoiceItem:${userID}:*`);
-
-    if (keys.length === 0) {
-      return [];
-    }
-
-    // Fetch all items
-    const items: InvoiceItem[] = [];
-
-    for (const key of keys) {
-      const data = await redis.get<unknown>(key);
-
-      if (data) {
-        try {
-          const item = invoiceItemSchema.parse(data);
-          items.push(item);
-        } catch (error) {
-          // Log but don't fail the entire list operation for one bad record
-          console.error(`Invalid invoice item data at key ${key}:`, error);
-        }
-      }
-    }
-
-    // Sort by date descending (newest first)
-    return items.sort((a, b) => b.date.localeCompare(a.date));
-  } else {
-    const sqliteInvoices = await import('./sqlite/invoices');
-    return sqliteInvoices.listInvoiceItems(userID);
-  }
-}
-
-/**
- * Delete an invoice item.
- */
-export async function deleteInvoiceItem(
-  userID: string,
-  itemID: string
-): Promise<void> {
-  if (useRedis) {
-    if (!redis) {
-      throw new Error('Redis client not initialized');
-    }
-
-    // Delete item data - idempotent operation
-    await redis.del(`invoiceItem:${userID}:${itemID}`);
-  } else {
-    const sqliteInvoices = await import('./sqlite/invoices');
-    return sqliteInvoices.deleteInvoiceItem(userID, itemID);
+    return sqliteInvoices.getNextInvoiceSequence(billingUserID);
   }
 }

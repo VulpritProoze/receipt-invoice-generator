@@ -100,4 +100,30 @@ export async function updateCompanyConfig(
   }
 }
 
+/**
+ * Get company ID for a user.
+ * Returns null if no company config exists.
+ */
+export async function getCompanyIDForUser(
+  userID: string
+): Promise<string | null> {
+  if (useRedis) {
+    const config = await getCompanyConfig(userID);
+    return config?.companyID ?? null;
+  } else {
+    const sqliteCompany = await import('./sqlite/company');
+    return sqliteCompany.getCompanyIDForUser(userID);
+  }
+}
+
+/**
+ * Generate a new company ID.
+ */
+export function generateCompanyID(): string {
+  // Use synchronous import for ID generation utility
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { generateID } = require('@/lib/idGenerator');
+  return generateID('COMP');
+}
+
 // Made with Bob

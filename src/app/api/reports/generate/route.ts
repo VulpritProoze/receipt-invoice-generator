@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { listUserInvoices } from '@/modules/invoices/invoiceService';
+import { listBillingUserInvoices } from '@/modules/invoices/invoiceService';
 import { listUserReceipts } from '@/modules/receipts/receiptService';
 import {
   exportInvoicesToCSV,
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
 
     // Generate report based on type and format
     if (type === 'invoice') {
-      const invoices = await listUserInvoices(userID);
+      const invoices = await listBillingUserInvoices(userID);
       
       if (format === 'xlsx') {
         fileContent = exportInvoicesToXLSX(invoices);

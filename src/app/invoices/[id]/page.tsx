@@ -69,7 +69,17 @@ export default function InvoiceDetailPage() {
   const handleGenerateReceipt = async () => {
     if (!user || !invoice) return;
 
-    const subtotal = invoice.invoiceItems.reduce(
+    const flatItems = invoice.invoiceItems.flatMap((item) => {
+      return item.billingHistoryEntries.map((entry) => ({
+        itemID: entry.billingHistoryID,
+        description: item.description,
+        quantity: entry.quantity,
+        rate: entry.rate,
+        date: entry.date
+      }));
+    });
+
+    const subtotal = flatItems.reduce(
       (sum, item) => sum + item.quantity * item.rate,
       0
     );
@@ -86,7 +96,7 @@ export default function InvoiceDetailPage() {
         body: JSON.stringify({
           date: new Date().toISOString().split('T')[0],
           invoiceID: invoice.invoiceID,
-          invoiceItems: invoice.invoiceItems,
+          invoiceItems: flatItems,
           total: computedTotal,
         }),
       });
@@ -147,11 +157,13 @@ export default function InvoiceDetailPage() {
     );
   }
 
-  // Calculate totals
-  const subtotal = invoice.invoiceItems.reduce(
-    (sum, item) => sum + item.quantity * item.rate,
-    0
-  );
+  // Calculate totals from nested structure
+  const subtotal = invoice.invoiceItems.reduce((sum, item) => {
+    const itemTotal = item.billingHistoryEntries.reduce((itemSum, entry) => {
+      return itemSum + entry.amount;
+    }, 0);
+    return sum + itemTotal;
+  }, 0);
   const taxAmount = subtotal * invoice.taxRate;
   const total = subtotal + taxAmount;
 
@@ -187,46 +199,64 @@ export default function InvoiceDetailPage() {
           <p className="text-gray-600">Terms: {invoice.terms}</p>
         </div>
 
-        {/* Bill To */}
+        {/* Billed User */}
         <div>
-          <h3 className="font-semibold mb-2">Bill To:</h3>
-          <p>{invoice.billTo}</p>
-          <p>{invoice.billToAddressLine}</p>
-          <p>
-            {invoice.billToCityAddress}, {invoice.billToPostalAddress}
-          </p>
-          <p>{invoice.billToCountry}</p>
+          <h3 className="font-semibold mb-2">Billed User:</h3>
+          <p>Billing User ID: {invoice.billingUserID}</p>
         </div>
 
-        {/* Line Items */}
+        {/* Line Items - Grouped by Service */}
         <div>
           <h3 className="font-semibold mb-2">Items:</h3>
-          <table className="min-w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-2 text-left">Description</th>
-                <th className="px-4 py-2 text-right">Quantity</th>
-                <th className="px-4 py-2 text-right">Rate</th>
-                <th className="px-4 py-2 text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoice.invoiceItems.map((item, index) => (
-                <tr key={index} className="border-t">
-                  <td className="px-4 py-2">{item.description}</td>
-                  <td className="px-4 py-2 text-right">{item.quantity}</td>
-                  <td className="px-4 py-2 text-right">
-                    {invoice.currency === 'PHP' ? '₱' : '$'}
-                    {item.rate.toFixed(2)}
-                  </td>
-                  <td className="px-4 py-2 text-right">
-                    {invoice.currency === 'PHP' ? '₱' : '$'}
-                    {(item.quantity * item.rate).toFixed(2)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="space-y-6">
+            {invoice.invoiceItems.map((item, itemIndex) => {
+              const itemSubtotal = item.billingHistoryEntries.reduce(
+                (sum, entry) => sum + entry.amount,
+                0
+              );
+              
+              return (
+                <div key={itemIndex} className="border rounded-lg p-4">
+                  <h4 className="font-semibold text-lg mb-3">{item.description}</h4>
+                  <table className="min-w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-sm">Date</th>
+                        <th className="px-4 py-2 text-right text-sm">Quantity</th>
+                        <th className="px-4 py-2 text-right text-sm">Rate</th>
+                        <th className="px-4 py-2 text-right text-sm">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {item.billingHistoryEntries.map((entry, entryIndex) => (
+                        <tr key={entryIndex} className="border-t">
+                          <td className="px-4 py-2 text-sm">{entry.date}</td>
+                          <td className="px-4 py-2 text-sm text-right">{entry.quantity}</td>
+                          <td className="px-4 py-2 text-sm text-right">
+                            {invoice.currency === 'PHP' ? '₱' : '$'}
+                            {entry.rate.toFixed(2)}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-right">
+                            {invoice.currency === 'PHP' ? '₱' : '$'}
+                            {entry.amount.toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                      <tr className="border-t bg-gray-50 font-semibold">
+                        <td colSpan={3} className="px-4 py-2 text-sm text-right">
+                          Item Subtotal:
+                        </td>
+                        <td className="px-4 py-2 text-sm text-right">
+                          {invoice.currency === 'PHP' ? '₱' : '$'}
+                          {itemSubtotal.toFixed(2)}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Totals */}

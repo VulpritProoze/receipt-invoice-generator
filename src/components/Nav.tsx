@@ -27,8 +27,8 @@ export default function Nav() {
               <Link href="/users" className="text-sm hover:underline">
                 Users
               </Link>
-              <Link href="/import" className="text-sm hover:underline">
-                Import
+              <Link href="/billing-users" className="text-sm hover:underline">
+                Clients
               </Link>
               <Link href="/onboarding" className="text-sm hover:underline">
                 Onboarding
@@ -65,8 +65,8 @@ export default function Nav() {
             <Link href="/users" className="block px-3 py-2 text-base">
               Users
             </Link>
-            <Link href="/import" className="block px-3 py-2 text-base">
-              Import
+            <Link href="/billing-users" className="block px-3 py-2 text-base">
+              Clients
             </Link>
             <Link href="/onboarding" className="block px-3 py-2 text-base">
               Onboarding

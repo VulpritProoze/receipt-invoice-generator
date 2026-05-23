@@ -21,20 +21,39 @@ export async function exportInvoicesToPDF(invoices: Invoice[]): Promise<Buffer> 
       doc.moveDown(2);
 
       invoices.forEach((invoice, index) => {
-        // Calculate total
-        const subtotal = invoice.invoiceItems.reduce(
-          (sum, item) => sum + item.quantity * item.rate,
-          0
-        );
+        // Calculate total from nested structure
+        const subtotal = invoice.invoiceItems.reduce((sum, item) => {
+          const itemTotal = item.billingHistoryEntries.reduce(
+            (itemSum, entry) => itemSum + entry.amount,
+            0
+          );
+          return sum + itemTotal;
+        }, 0);
         const taxAmount = subtotal * invoice.taxRate;
         const total = subtotal + taxAmount;
+        
+        const currencySymbol = invoice.currency === 'PHP' ? '₱' : '$';
         
         doc.fontSize(14).text(`Invoice ID: ${invoice.invoiceID}`, { underline: true });
         doc.fontSize(12).moveDown(0.5);
         doc.text(`Date: ${invoice.invoiceDate} | Due Date: ${invoice.dueDate || 'N/A'}`);
-        doc.text(`Bill To: ${invoice.billTo}`);
+        doc.text(`Billing User ID: ${invoice.billingUserID}`);
         doc.text(`Currency: ${invoice.currency}`);
-        doc.font('Helvetica-Bold').text(`Total: ${total.toFixed(2)} ${invoice.currency}`);
+        
+        // Show grouped items summary
+        doc.fontSize(11).moveDown(0.5);
+        invoice.invoiceItems.forEach((item) => {
+          const itemTotal = item.billingHistoryEntries.reduce(
+            (sum, entry) => sum + entry.amount,
+            0
+          );
+          doc.text(
+            `  ${item.description}: ${item.billingHistoryEntries.length} entries = ${currencySymbol}${itemTotal.toFixed(2)}`
+          );
+        });
+        
+        doc.moveDown(0.5);
+        doc.font('Helvetica-Bold').text(`Total: ${currencySymbol}${total.toFixed(2)}`);
         doc.font('Helvetica');
         
         doc.moveDown(1.5);

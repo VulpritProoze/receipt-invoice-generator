@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
 export const companyConfigSchema = z.object({
+  companyID: z
+    .string()
+    .min(1, 'Company ID is required')
+    .max(50, 'Company ID must not exceed 50 characters'),
   brandName: z
     .string()
     .min(1, 'Brand name is required')

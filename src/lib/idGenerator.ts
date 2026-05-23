@@ -1,9 +1,38 @@
 /**
- * ID generation utilities for invoices and receipts.
+ * ID generation utilities for invoices, receipts, and other entities.
  * These functions generate unique identifiers matching the required formats.
  */
 
 import crypto from 'crypto';
+
+/**
+ * Generates a generic ID with a prefix and random alphanumeric suffix.
+ * @param prefix - The prefix for the ID (e.g., "COMP", "BU", "IIM", "BH")
+ * @param length - Length of the random suffix (default: 12)
+ * @returns ID string (e.g., "COMP-A3K9MXQP2T7V")
+ */
+export function generateID(prefix: string, length: number = 12): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+  let randomValues: Uint8Array;
+
+  if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+    // Browser environment
+    randomValues = new Uint8Array(length);
+    window.crypto.getRandomValues(randomValues);
+  } else {
+    // Node.js environment
+    randomValues = new Uint8Array(length);
+    crypto.randomFillSync(randomValues);
+  }
+
+  let suffix = '';
+  for (let i = 0; i < length; i++) {
+    suffix += chars[randomValues[i] % chars.length];
+  }
+
+  return `${prefix}-${suffix}`;
+}
 
 /**
  * Generates an invoice ID in the format INV + 9-digit zero-padded number.

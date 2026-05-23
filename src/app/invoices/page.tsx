@@ -39,7 +39,7 @@ export default function InvoicesPage() {
   const columns: TableColumn[] = [
     { key: 'invoiceID', label: 'Invoice ID' },
     { key: 'invoiceDate', label: 'Date' },
-    { key: 'billTo', label: 'Bill To' },
+    { key: 'billingUserID', label: 'Billing User' },
     { key: 'currency', label: 'Currency', align: 'center' },
     { key: 'dueDate', label: 'Due Date' }
   ];
@@ -48,7 +48,7 @@ export default function InvoicesPage() {
   const tableData = invoices.map((invoice) => ({
     invoiceID: invoice.invoiceID,
     invoiceDate: invoice.invoiceDate,
-    billTo: invoice.billTo,
+    billingUserID: invoice.billingUserID,
     currency: invoice.currency,
     dueDate: invoice.dueDate
   }));

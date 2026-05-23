@@ -7,8 +7,10 @@ import {
   listReceipts as dbListReceipts,
   deleteReceipt as dbDeleteReceipt
 } from '@/lib/db/receipts';
-import { getInvoice } from '@/lib/db/invoices';
+import { getInvoiceByID } from '@/lib/db/invoices';
 import { getUser } from '@/lib/db/users';
+import { getBillingUser } from '@/modules/billingUsers/billingUserService';
+import { getCompanyConfig } from '@/lib/db/company';
 
 /**
  * Receipt service layer - handles business logic for receipt operations.
@@ -30,10 +32,21 @@ export async function createReceipt(
     'receiptID' | 'userID' | 'createdAt' | 'accountBilled' | 'chargedTo'
   >
 ): Promise<Receipt> {
-  // SECURITY REQUIREMENT: Verify invoice exists and belongs to this user
-  const invoice = await getInvoice(userID, receiptData.invoiceID);
+  // SECURITY REQUIREMENT: Verify invoice exists and belongs to this user's company
+  const invoice = await getInvoiceByID(receiptData.invoiceID);
   if (!invoice) {
     throw new Error('Invoice not found');
+  }
+
+  // Verify that the invoice belongs to a billing user under this user's company
+  const billingUser = await getBillingUser(invoice.billingUserID);
+  if (!billingUser) {
+    throw new Error('Billing user not found');
+  }
+
+  const companyConfig = await getCompanyConfig(userID);
+  if (!companyConfig || billingUser.companyID !== companyConfig.companyID) {
+    throw new Error('Unauthorized: Invoice does not belong to this user');
   }
 
   // Check if receipt already exists for this invoice
@@ -132,5 +145,3 @@ export async function deleteReceipt(
 ): Promise<void> {
   await dbDeleteReceipt(userID, receiptID);
 }
-
-// Made with Bob

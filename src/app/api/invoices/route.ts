@@ -1,27 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   createInvoice,
-  listUserInvoices
+  listBillingUserInvoices
 } from '@/modules/invoices/invoiceService';
 import { invoiceCreateRequestSchema } from '@/schemas';
-
 import { getCurrentUserId } from '@/lib/auth';
+import { getCompanyIDForUser } from '@/lib/db/company';
+import { listBillingUsers } from '@/modules/billingUsers/billingUserService';
 
 /**
- * POST /api/invoices - Create a new invoice
- * Request body: Invoice data without invoiceID (will be generated)
- * Response: 201 with created invoice, or 400/500 on error
+ * POST /api/invoices - Create a new invoice from billing history
+ * Request body: { billingUserID, billingHistoryIDs, invoiceDate, terms, dueDate, currency, taxRate }
+ * Response: 201 with created invoice, or 400/401/500 on error
  */
 export async function POST(req: NextRequest) {
   try {
+    const userID = await getCurrentUserId();
+    if (!userID) {
+      return NextResponse.json(
+        { error: 'User must be authenticated' },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
-    const userID = (await getCurrentUserId()) || body.userID || 'demo-user-001';
 
     // Validate request body using centralized schema
-    const result = invoiceCreateRequestSchema.safeParse({
-      ...body,
-      userID
-    });
+    const result = invoiceCreateRequestSchema.safeParse(body);
 
     if (!result.success) {
       return NextResponse.json(
@@ -33,42 +38,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create invoice with validated data (will generate invoiceID)
-    const validatedData = result.data;
-    const invoice = await createInvoice(validatedData.userID, {
-      invoiceDate: validatedData.invoiceDate,
-      terms: validatedData.terms,
-      dueDate: validatedData.dueDate,
-      currency: validatedData.currency,
-      billTo: validatedData.billTo,
-      billToAddressLine: validatedData.billToAddressLine,
-      billToCityAddress: validatedData.billToCityAddress,
-      billToPostalAddress: validatedData.billToPostalAddress,
-      billToCountry: validatedData.billToCountry,
-      invoiceItems: validatedData.invoiceItems,
-      taxRate: validatedData.taxRate
-    });
+    const { billingUserID, billingHistoryIDs, ...invoiceData } = result.data;
+
+    // Create invoice from billing history
+    const invoice = await createInvoice(billingUserID, billingHistoryIDs, invoiceData);
 
     return NextResponse.json(invoice, { status: 201 });
   } catch (error) {
-    // Log error server-side with context
     console.error('Error creating invoice:', error);
 
-    // Check for specific error types
     if (error instanceof Error) {
-      // Zod validation errors
       if (error.name === 'ZodError') {
         return NextResponse.json(
-          {
-            error: 'Invalid invoice data',
-            details: error.message
-          },
+          { error: 'Invalid invoice data', details: error.message },
           { status: 400 }
         );
       }
+      // Known business errors
+      if (
+        error.message.includes('not found') ||
+        error.message.includes('already billed') ||
+        error.message.includes('does not belong')
+      ) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
     }
 
-    // Generic error response - don't expose internal details
     return NextResponse.json(
       { error: 'Failed to create invoice' },
       { status: 500 }
@@ -77,16 +72,14 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * GET /api/invoices?userID=xxx - List all invoices for a user
- * Query params: userID (optional if authenticated)
- * Response: 200 with array of invoices, or 400/500 on error
+ * GET /api/invoices?billingUserID=xxx - List all invoices
+ * Query params: billingUserID (optional - filters to a specific billing user)
+ * If omitted, lists all invoices across all billing users for the company.
+ * Response: 200 with array of invoices, or 401/500 on error
  */
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const queryUserID = searchParams.get('userID');
-    const userID = (await getCurrentUserId()) || queryUserID;
-
+    const userID = await getCurrentUserId();
     if (!userID) {
       return NextResponse.json(
         { error: 'User must be authenticated' },
@@ -94,14 +87,32 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const invoices = await listUserInvoices(userID);
+    const { searchParams } = new URL(req.url);
+    const billingUserID = searchParams.get('billingUserID');
+
+    if (billingUserID) {
+      // Return invoices for a specific billing user
+      const invoices = await listBillingUserInvoices(billingUserID);
+      return NextResponse.json({ invoices }, { status: 200 });
+    }
+
+    // Return invoices for all billing users in the company
+    const companyID = await getCompanyIDForUser(userID);
+    if (!companyID) {
+      return NextResponse.json({ invoices: [] }, { status: 200 });
+    }
+
+    const billingUsers = await listBillingUsers(companyID);
+    const allInvoicesNested = await Promise.all(
+      billingUsers.map((bu) => listBillingUserInvoices(bu.billingUserID))
+    );
+    const invoices = allInvoicesNested
+      .flat()
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
     return NextResponse.json({ invoices }, { status: 200 });
   } catch (error) {
-    // Log error server-side with context
     console.error('Error listing invoices:', error);
-
-    // Generic error response - don't expose internal details
     return NextResponse.json(
       { error: 'Failed to list invoices' },
       { status: 500 }

@@ -21,11 +21,11 @@ const MAX_FILE_SIZE_MB = 5;
  * Accepts multipart/form-data file upload
  * Required fields:
  * - file: CSV or XLSX file
- * - userID: User ID to associate imported items with
+ * - billingUserID: Billing User ID to associate imported history with
  *
  * Returns:
- * - 200: { imported: number, skipped: number, errors: string[] }
- * - 400: Invalid file type, missing fields, or validation errors
+ * - 200: { imported: number, skipped: number, errors: string[], unmatched?: UnmatchedItem[] }
+ * - 400: Invalid file type, missing fields, unmatched catalog items, or validation errors
  * - 413: File too large
  * - 500: Server error during import
  */
@@ -34,11 +34,11 @@ export async function POST(req: NextRequest) {
     // Parse multipart form data
     const formData = await req.formData();
 
-    // Extract userID
-    const userID = formData.get('userID');
-    if (!userID || typeof userID !== 'string') {
+    // Extract billingUserID
+    const billingUserID = formData.get('billingUserID');
+    if (!billingUserID || typeof billingUserID !== 'string') {
       return NextResponse.json(
-        { error: 'userID is required' },
+        { error: 'billingUserID is required' },
         { status: 400 }
       );
     }
@@ -102,7 +102,21 @@ export async function POST(req: NextRequest) {
     }
 
     // Import billing history
-    const result = await importBillingHistory(userID, fileContent, fileType);
+    const result = await importBillingHistory(billingUserID, fileContent, fileType);
+
+    // If there are unmatched items, return 200 with unmatched items for the UI to handle
+    if (result.unmatched && result.unmatched.length > 0) {
+      return NextResponse.json(
+        {
+          imported: 0,
+          skipped: result.skipped,
+          errors: result.errors,
+          unmatched: result.unmatched,
+          filename: sanitizedFilename
+        },
+        { status: 200 }
+      );
+    }
 
     // Return success response
     return NextResponse.json(

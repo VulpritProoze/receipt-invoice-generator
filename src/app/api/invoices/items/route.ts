@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { listInvoiceItems } from '@/lib/db/invoices';
+import { listBillingHistoryForUser } from '@/lib/db/billingHistory';
+import { getInvoiceItemMaster } from '@/lib/db/invoiceItemMasters';
 
 /**
  * GET /api/invoices/items
@@ -19,7 +20,22 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const items = await listInvoiceItems(userID);
+    const histories = await listBillingHistoryForUser(userID, {
+      billedStatus: 'unbilled'
+    });
+
+    const items = await Promise.all(
+      histories.map(async (h) => {
+        const master = await getInvoiceItemMaster(h.invoiceItemID);
+        return {
+          itemID: h.billingHistoryID,
+          quantity: h.quantity,
+          description: master?.description || 'Unknown Item',
+          rate: h.rate,
+          date: h.date
+        };
+      })
+    );
 
     return NextResponse.json({ items }, { status: 200 });
   } catch (error) {

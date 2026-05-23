@@ -13,12 +13,12 @@ import type { Invoice, Receipt } from '@/schemas';
  * ```
  */
 export function exportInvoicesToCSV(invoices: Invoice[]): string {
-  const headers = ['Invoice ID', 'Date', 'Bill To', 'Currency', 'Due Date', 'Total'];
+  const headers = ['Invoice ID', 'Date', 'Billing User ID', 'Currency', 'Due Date', 'Total'];
   
   const rows = invoices.map((invoice) => {
     // Calculate total
     const subtotal = invoice.invoiceItems.reduce(
-      (sum, item) => sum + item.quantity * item.rate,
+      (sum, item) => sum + item.billingHistoryEntries.reduce((itemSum, entry) => itemSum + entry.amount, 0),
       0
     );
     const taxAmount = subtotal * invoice.taxRate;
@@ -27,7 +27,7 @@ export function exportInvoicesToCSV(invoices: Invoice[]): string {
     return [
       invoice.invoiceID,
       invoice.invoiceDate,
-      invoice.billTo,
+      invoice.billingUserID,
       invoice.currency,
       invoice.dueDate,
       total.toFixed(2)

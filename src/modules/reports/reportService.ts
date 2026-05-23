@@ -12,9 +12,10 @@
  * - Receipt generation requires valid invoice from database
  */
 
-import { getInvoice } from '@/lib/db/invoices';
+import { getInvoiceByID } from '@/lib/db/invoices';
 import { getReceipt } from '@/lib/db/receipts';
 import { getCompanyConfig } from '@/lib/db/company';
+import { getBillingUser } from '@/modules/billingUsers/billingUserService';
 import { generateInvoicePDF } from './invoicePDF';
 import { generateReceiptPDF } from './receiptPDF';
 
@@ -30,17 +31,6 @@ export async function generateInvoiceReport(
   userID: string,
   invoiceID: string
 ): Promise<Buffer> {
-  // Load invoice from database
-  const invoice = await getInvoice(userID, invoiceID);
-  if (!invoice) {
-    throw new Error('Invoice not found');
-  }
-
-  // Verify ownership (getInvoice already scopes by userID, but explicit check for clarity)
-  if (invoice.userID !== userID) {
-    throw new Error('Unauthorized: Invoice does not belong to this user');
-  }
-
   // Load company config
   const companyConfig = await getCompanyConfig(userID);
   if (!companyConfig) {
@@ -63,8 +53,25 @@ export async function generateInvoiceReport(
     );
   }
 
+  // Load invoice from database
+  const invoice = await getInvoiceByID(invoiceID);
+  if (!invoice) {
+    throw new Error('Invoice not found');
+  }
+
+  // Fetch the billing user to resolve companyID
+  const billingUser = await getBillingUser(invoice.billingUserID);
+  if (!billingUser) {
+    throw new Error('Billing user not found');
+  }
+
+  // Verify ownership (the billing user's companyID must match companyConfig's companyID)
+  if (billingUser.companyID !== companyConfig.companyID) {
+    throw new Error('Unauthorized: Invoice does not belong to this user');
+  }
+
   // Generate PDF
-  return generateInvoicePDF(invoice, companyConfig);
+  return generateInvoicePDF(invoice, companyConfig, billingUser);
 }
 
 /**
@@ -83,29 +90,6 @@ export async function generateReceiptReport(
   userID: string,
   receiptID: string
 ): Promise<Buffer> {
-  // Load receipt from database
-  const receipt = await getReceipt(userID, receiptID);
-  if (!receipt) {
-    throw new Error('Receipt not found');
-  }
-
-  // Verify ownership
-  if (receipt.userID !== userID) {
-    throw new Error('Unauthorized: Receipt does not belong to this user');
-  }
-
-  // Load the related invoice from database (security requirement)
-  // Never accept invoice data from request body - always load from database
-  const invoice = await getInvoice(userID, receipt.invoiceID);
-  if (!invoice) {
-    throw new Error('Related invoice not found');
-  }
-
-  // Verify invoice ownership matches receipt ownership
-  if (invoice.userID !== userID) {
-    throw new Error('Unauthorized: Invoice does not belong to this user');
-  }
-
   // Load company config
   const companyConfig = await getCompanyConfig(userID);
   if (!companyConfig) {
@@ -128,8 +112,34 @@ export async function generateReceiptReport(
     );
   }
 
+  // Load receipt from database
+  const receipt = await getReceipt(userID, receiptID);
+  if (!receipt) {
+    throw new Error('Receipt not found');
+  }
+
+  // Verify ownership
+  if (receipt.userID !== userID) {
+    throw new Error('Unauthorized: Receipt does not belong to this user');
+  }
+
+  // Load the related invoice from database (security requirement)
+  const invoice = await getInvoiceByID(receipt.invoiceID);
+  if (!invoice) {
+    throw new Error('Related invoice not found');
+  }
+
+  // Fetch billing user of invoice
+  const billingUser = await getBillingUser(invoice.billingUserID);
+  if (!billingUser) {
+    throw new Error('Billing user not found');
+  }
+
+  // Verify invoice ownership matches receipt ownership
+  if (billingUser.companyID !== companyConfig.companyID) {
+    throw new Error('Unauthorized: Invoice does not belong to this user');
+  }
+
   // Generate PDF
   return generateReceiptPDF(receipt, invoice, companyConfig);
 }
-
-// Made with Bob
