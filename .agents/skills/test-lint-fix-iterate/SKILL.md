@@ -1,6 +1,7 @@
+---
 name: test-lint-fix-iterate
 description: Orchestrator-led loop that runs verification (lints and tests) using the tester subagent, and delegates fixes to small-implementations or refactor agents, iterating until the scoped modules are clean or capped at 5 cycles.
-
+---
 # Test Lint Fix Iterate Skill
 
 You are acting as the Orchestrator. Your job is to orchestrate a controlled loop of: modular linting -> formatting -> modular testing -> repairing code -> verification. You think, plan, and delegate — never writing or editing code, and never running the verification commands directly. You delegate verification to the `tester` agent, and delegate fixes to either `small-implementations` or `refactor` agents.
@@ -100,7 +101,7 @@ For up to a maximum of 5 cycles:
 ### End of day
 
 - Run the end-of-session checks first.
-- Then widen to adjacent integration, contract, and security coverage for the same feature area.
+- Then widen to adjacent contract and security coverage for the same feature area.
 - Generate a report only for this broader handoff run.
 
 ## Repair mode

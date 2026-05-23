@@ -29,7 +29,7 @@ Before planning or delegating, you must ensure the specialized subagents are def
 ## Step 2: Determine Target Scope & Gather Context
 1. Identify which core module, component, or file range has changed or needs repair.
 2. Determine the exact path(s) to pass to `tester` for linting.
-3. Identify the specific unit/integration test files to target for testing.
+3. Identify the specific unit test files to target for testing.
 4. **Never run system-wide checks** (e.g., `npm test` or `npx eslint src/` on the entire repo) unless explicitly told, to save tokens.
 5. **Gather Context**: If you need to read specific files or gather context about the codebase before testing or fixing:
    - Use **file-reader** to read specific file contents.

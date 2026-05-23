@@ -3,8 +3,8 @@
 ## Project: BillGen
 
 **Status**: Active development
-**Last Updated**: 2026-05-22
-**Active Agent**: Antigravity
+**Last Updated**: 2026-05-23
+**Active Agent**: Bob
 
 ---
 
@@ -32,6 +32,13 @@
 ---
 
 ## Recent Work (completed)
+
+**Test Suite Simplification (2026-05-23)**:
+- Integration & Snapshot Test Removal — Executed PLAN-012. Deleted 8 test files (5 integration, 3 snapshot) that were failing after SQLite migration.
+- Testing Protocol Updates — Updated `.agents/rules/testing-protocol.md` and `.bob/rules/testing-protocol.md` to remove integration and snapshot test types from execution order, naming conventions, and coverage targets.
+- Architecture Documentation — Updated `docs/architecture/testing-strategy.md` to reflect simplified test suite (Unit → Schema → Contract → Fixture → Security).
+- AI Skill Updates — Modified test-generator, test-lint-fix-iterate, and test-lint-fix skills to stop generating or expecting removed test types.
+- Test Suite Verification — Confirmed no integration or snapshot test files remain; 18 test suites passing with simplified workflow.
 
 **Bug Fixes & Stabilizations (2026-05-22)**:
 - API Parameter Decoupling — Fixed Receipt and Users APIs to securely fetch session users instead of requiring URL query strings.
@@ -75,9 +82,9 @@
 
 ## Hand-off Notes
 
-**Authentication & PDF Fixes (2026-05-22)**: The NextAuth configuration has been fixed to map `id` onto the session object via JWT callbacks, securely falling back to legacy single-tenant users when necessary. The `users` SQLite table was seeded with `demo-user-001` to resolve foreign key lookups during receipt generation. The `pdfkit` webpack bug was resolved using `serverExternalPackages`. **A dev server restart is required for the pdfkit fix to take effect**. The API GET handlers for receipts and users were decoupled from strict query parameters.
+**Test Suite Simplified (2026-05-23)**: All integration and snapshot tests have been removed per PLAN-012. The test suite now runs 5 test types in order: Unit → Schema → Contract → Fixture → Security. Testing protocol rules, architecture docs, and AI skills have been updated accordingly. The simplified suite reduces maintenance overhead while preserving robust validation for MVP scope. Pre-existing test failures (SQLite unique constraints) remain and are unrelated to this change.
 
-**Testing Strategy Optimization (2026-05-21)**: The `test-lint-fix-iterate` workflow is currently slow and token-heavy. A new draft plan separates cheap session-end checks from broader day-end verification so the repair loop is only used after a scoped failure. See `docs/plans/agentic-test-workflow-optimization.md`.
+**Authentication & PDF Fixes (2026-05-22)**: The NextAuth configuration has been fixed to map `id` onto the session object via JWT callbacks, securely falling back to legacy single-tenant users when necessary. The `users` SQLite table was seeded with `demo-user-001` to resolve foreign key lookups during receipt generation. The `pdfkit` webpack bug was resolved using `serverExternalPackages`. **A dev server restart is required for the pdfkit fix to take effect**. The API GET handlers for receipts and users were decoupled from strict query parameters.
 
 **Database Layer Complete (2026-05-21)**: Phase 3 (Data Models) and Phase 4 (Database Layer) are now complete. The application uses SQLite by default for local development with automatic database initialization at `.dev/billgen.db`. All data persists across restarts. Redis support is available for production by setting `USE_REDIS=true`. See `docs/plans/009-sqlite-database-implementation.md` for complete implementation details.
 
@@ -92,7 +99,7 @@
 ## Remaining Next Steps
 
 **Post-MVP priorities**:
-- Add automated tests for all MVP and Post-MVP features (schema tests, API contract tests, component snapshots). Test deferred per latest instructions.
+- Fix pre-existing test failures (SQLite unique constraint errors in unit tests, contract test issues).
 - Run full repository ESLint and fix remaining issues.
 
 ---

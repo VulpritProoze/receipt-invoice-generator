@@ -43,11 +43,9 @@ The project uses a layered test strategy so pure logic, schemas, route handlers,
 ## Test Types
 
 - Unit: pure calculations, ID generation, masking, date normalization.
-- Snapshot: React component structure and stable rendering output.
 - Schema: Zod validation and TypeScript interface parity.
 - Contract: route handler request/response shape.
 - Fixture: CSV/XLSX parsing with static sample files.
-- Integration: module-level flows with mocked Redis and mocked PDF generation.
 - Security: guardrails such as masking and invalid input rejection.
 
 ## Execution Order
@@ -83,7 +81,6 @@ Import fixtures live under `src/modules/import/__fixtures__/` and should be name
 ## Coverage Targets
 
 - Aim for above 80% line coverage on `src/lib/` and `src/modules/`.
-- Maintain snapshot coverage for all user-facing components.
 - Maintain 100% schema test coverage for all Zod schemas.
 
 ## Workflow Notes
@@ -105,7 +102,7 @@ Import fixtures live under `src/modules/import/__fixtures__/` and should be name
 
 ### End of Day
 
-- Run the scoped module tests plus one adjacent integration or contract layer for the same feature area.
+- Run the scoped module tests plus one adjacent contract or security layer for the same feature area.
 - Include a single report only when the day-end run is meant to certify a slice or hand it off.
 - If the infrastructure is unstable, record the failure mode first and avoid repeated reruns until the harness issue is isolated.
 

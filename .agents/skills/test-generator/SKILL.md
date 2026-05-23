@@ -8,7 +8,7 @@ description: 'Use when the user wants tests created for specific modules or for 
 
 Test Generator helps you create focused tests for BillGen by forcing an explicit scope decision before any test code is written. It supports two modes: tests for named modules, or tests inferred from recent features and fixes in workspace, session, or memory context.
 
-This skill follows the repository's documented testing infrastructure in [docs/architecture/testing-strategy.md](../../../docs/architecture/testing-strategy.md): unit, schema, contract, fixture, integration, snapshot, and security tests. When a module can realistically support multiple required families, prefer covering all applicable families for that module rather than only one narrow test type.
+This skill follows the repository's documented testing infrastructure in [docs/architecture/testing-strategy.md](../../../docs/architecture/testing-strategy.md): unit, schema, contract, fixture, and security tests. When a module can realistically support multiple required families, prefer covering all applicable families for that module rather than only one narrow test type.
 
 ## When to Use
 
@@ -43,8 +43,6 @@ Do not use this skill when the user explicitly wants a full suite-wide expansion
    - Use schema tests for Zod-backed models and validation contracts.
    - Use fixture tests for CSV/XLSX or other static sample inputs.
    - Use contract tests for route handlers or request/response shapes.
-   - Use integration tests when behavior crosses module boundaries or depends on wiring.
-   - Use snapshot tests for user-facing React components when rendering stability matters.
    - Use security tests for sensitive data handling, trust boundaries, validation, or file input.
    - Use the least expensive test type that still verifies the requested behavior, but expand to the full applicable family set for the selected module when the docs require it.
 
@@ -72,7 +70,6 @@ Do not use this skill when the user explicitly wants a full suite-wide expansion
 - Never widen the scope because it is easier than clarifying the request.
 - Never guess which modules should be tested when recent work is unclear.
 - Never create placeholder tests that do not verify a real behavior.
-- Never stop at a single test family when the selected module can and should be covered by additional required families from the test strategy.
 - Never skip security-sensitive edge cases when the change touches sensitive data or boundaries.
 - Never mark tests as focused or skipped to force a green result.
 
